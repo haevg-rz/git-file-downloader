@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/dhcgn/GitLabFileDownloader/internal"
 	"github.com/dhcgn/GitLabFileDownloader/internal/api"
+	"github.com/pkg/errors"
 )
 
 func Test_main_no_arguments(t *testing.T) {
@@ -37,7 +37,7 @@ func Test_main_mode_file(t *testing.T) {
 	setFlagsFile(filePath)
 
 	api.HttpGetFunc = func(url string, s internal.Settings) ([]byte, error) {
-		return []byte(`{
+		file := `{
 			"file_name": "settings.json",
 			"file_path": "settings.json",
 			"size": 66,
@@ -48,7 +48,24 @@ func Test_main_mode_file(t *testing.T) {
 			"commit_id": "726a84679597812d8085085f742fb5ddba8a0299",
 			"last_commit_id": "4005048b4c3d556ebcdb40bd7dc471fd2216d635",
 			"content": "ewogICAgImZydWl0IjogIkFwcGxlIiwKICAgICJzaXplIjogIkxhcmdlIiwKICAgICJjb2xvciI6ICJSZWQiCn0K"
-		}`), nil
+		}`
+
+		branches := `[
+			{
+				"name": "BUG-FIX"
+			},
+			{
+				"name": "master"
+			}
+		]`
+
+		if strings.Contains(url, "/repository/branches") {
+			return []byte(branches), nil
+		}
+		if strings.Contains(url, "/repository/files") {
+			return []byte(file), nil
+		}
+		return nil, errors.New("Unknown TESTING URL")
 	}
 
 	var output string
@@ -145,7 +162,17 @@ func Test_main_mode_folder(t *testing.T) {
 				"content": "VGVzdCBGaWxlIDEK"
 			}`), nil
 		}
-		return nil, fmt.Errorf("Unknown URL %v", url)
+		if strings.Contains(url, `repository/branches`) {
+			return []byte(`[
+			{
+				"name": "BUG-FIX"
+			},
+			{
+				"name": "master"
+			}
+		]`), nil
+		}
+		return nil, fmt.Errorf("Unknown TEST-URL %v", url)
 	}
 
 	var output string
@@ -188,7 +215,7 @@ func Test_main_mode_folder(t *testing.T) {
 }
 
 func getTempFilePath() (error, string) {
-	tmpfileTarget, _ := ioutil.TempFile("", "golang-test.*")
+	tmpfileTarget, _ := os.CreateTemp("", "golang-test.*")
 	filePath := tmpfileTarget.Name()
 
 	if err := tmpfileTarget.Close(); err != nil {
