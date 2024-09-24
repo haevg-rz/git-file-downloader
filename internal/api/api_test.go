@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/base64"
 	"strings"
 	"testing"
 
@@ -104,8 +105,13 @@ func TestGetFile(t *testing.T) {
 		t.Errorf("expected file name 'file1.txt', got %s", file.FileName)
 	}
 
+	decodedContent, err := base64.StdEncoding.DecodeString(file.Content)
+	if err != nil {
+		t.Fatalf("failed to decode content: %v", err)
+	}
+
 	expectedContent := "test content"
-	if file.Content != expectedContent {
-		t.Errorf("expected content '%s', got '%s'", expectedContent, file.Content)
+	if string(decodedContent) != expectedContent {
+		t.Errorf("expected content '%s', got '%s'", expectedContent, decodedContent)
 	}
 }
