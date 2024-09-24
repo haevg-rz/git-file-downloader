@@ -49,7 +49,7 @@ Usage of gitlabfiledownloader.exe:
   -repoFolder string
         Folder to write file to disk
   -token string
-        Private-Token with access right for "api" and "read_repository"
+        Private-Token with access right for "api" and "read_repository", role must be minimum "Reporter"
   -url string
         Url to Api v4, like https://my-git-lab-server.local/api/v4/
 ```

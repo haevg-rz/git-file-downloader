@@ -27,7 +27,7 @@ var (
 	version  = "undef"
 	commitID = "undef"
 
-	flagTokenPtr = flag.String(internal.FlagNameToken, ``, `Private-Token with access right for "api" and "read_repository"`)
+	flagTokenPtr = flag.String(internal.FlagNameToken, ``, `Private-Token with access right for "api" and "read_repository, role must be minimum "Reporter""`)
 
 	flagOutPathPtr      = flag.String(internal.FlagNameOutPath, ``, "Path to write file to disk")
 	flagRepoFilePathPar = flag.String(internal.FlagNameRepoFilePath, ``, "File path in repo, like src/main.go")
@@ -45,10 +45,10 @@ var (
 )
 
 func main() {
-	mainSub(os.Args)
+	mainSub()
 }
 
-func mainSub(args []string) {
+func mainSub() {
 	log.Println(AppName, "Version:", version, "Commit:", commitID)
 	log.Println(`Project: https://github.com/dhcgn/GitLabFileDownloader/`)
 
@@ -148,6 +148,7 @@ func fileModeHandling(settings internal.Settings) {
 
 	if err != nil {
 		log.Println("Error at", settings.RepoFilePath, ":", err)
+		return
 	}
 	if new {
 		log.Println("Wrote file:", settings.RepoFilePath, ", because is new or changed")

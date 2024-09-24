@@ -203,8 +203,8 @@ func getTempFilePath() (error, string) {
 }
 
 func getTempFolderPath() (error, string) {
-	filePath, _ := ioutil.TempDir("", "golang-test.*")
-	return nil, filePath
+	filePath, err := os.MkdirTemp("", "golang-test.*")
+	return err, filePath
 }
 
 func setFlagsFile(path string) {
