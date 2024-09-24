@@ -56,9 +56,9 @@ func GetBranches(settings internal.Settings) ([]GitLabBranch, error) {
 	}
 
 	var responseStruct []GitLabBranch
-	json.Unmarshal(body, &responseStruct)
+	err = json.Unmarshal(body, &responseStruct)
 
-	return responseStruct, nil
+	return responseStruct, err
 }
 
 type GitLabBranch struct {
@@ -76,9 +76,9 @@ func GetFilesFromFolder(settings internal.Settings) ([]GitLabRepoFile, error) {
 	}
 
 	var responseStruct []GitLabRepoFile
-	json.Unmarshal(body, &responseStruct)
+	err = json.Unmarshal(body, &responseStruct)
 
-	return responseStruct, nil
+	return responseStruct, err
 }
 
 type GitLabRepoFile struct {
