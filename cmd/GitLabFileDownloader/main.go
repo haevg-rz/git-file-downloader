@@ -18,9 +18,8 @@ import (
 	"github.com/dhcgn/GitLabFileDownloader/internal/api"
 )
 
-const (
-	AppName = "GitLab File Downloader"
-)
+// AppName is the name of the application
+const AppName = "GitLab File Downloader"
 
 var (
 	version  = "undef"
@@ -169,9 +168,9 @@ func fileModeHandling(settings internal.Settings) {
 	}
 	if new {
 		log.Println("Wrote file:", settings.RepoFilePath, ", because is new or changed")
-	} else {
-		log.Println("Skip:", settings.RepoFilePath, ", because content is equal")
+		return
 	}
+	log.Println("Skip:", settings.RepoFilePath, ", because content is equal")
 }
 
 func fileModeHandlingInternal(settings internal.Settings) (bool, error) {
@@ -224,8 +223,8 @@ func isOldFileEqual(gitLapFile api.GitLapFile, settings internal.Settings) (bool
 	return false, nil
 }
 
-func testTargetFolder(outFile string) (exists bool, dir string) {
-	dir = filepath.Dir(outFile)
+func testTargetFolder(outFile string) (bool, string) {
+	dir := filepath.Dir(outFile)
 	if _, err := os.Stat(dir); err == nil {
 		return true, dir
 	} else if os.IsNotExist(err) {
