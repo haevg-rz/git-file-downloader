@@ -15,7 +15,6 @@ import (
 )
 
 func Test_main_no_arguments(t *testing.T) {
-
 	output := captureOutput(func() {
 		main()
 	})
@@ -29,7 +28,7 @@ func Test_main_no_arguments(t *testing.T) {
 }
 
 func Test_main_mode_file(t *testing.T) {
-	err, filePath := getTempFilePath()
+	filePath, err := getTempFilePath()
 	if err != nil {
 		t.Error(err)
 	}
@@ -128,8 +127,9 @@ func Test_main_mode_file(t *testing.T) {
 		})
 	}
 }
+
 func Test_main_mode_folder(t *testing.T) {
-	err, folder := getTempFolderPath()
+	folder, err := getTempFolderPath()
 	if err != nil {
 		t.Error(err)
 	}
@@ -214,24 +214,24 @@ func Test_main_mode_folder(t *testing.T) {
 	}
 }
 
-func getTempFilePath() (error, string) {
+func getTempFilePath() (string, error) {
 	tmpfileTarget, _ := os.CreateTemp("", "golang-test.*")
 	filePath := tmpfileTarget.Name()
 
 	if err := tmpfileTarget.Close(); err != nil {
-		return err, ""
+		return "", err
 	}
 
 	if err := os.Remove(filePath); err != nil {
-		return err, ""
+		return "", err
 	}
 
-	return nil, filePath
+	return filePath, nil
 }
 
-func getTempFolderPath() (error, string) {
+func getTempFolderPath() (string, error) {
 	filePath, err := os.MkdirTemp("", "golang-test.*")
-	return err, filePath
+	return filePath, err
 }
 
 func setFlagsFile(path string) {
