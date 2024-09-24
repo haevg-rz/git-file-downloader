@@ -1,3 +1,3 @@
 module github.com/dhcgn/GitLabFileDownloader
 
-go 1.17
+go 1.22
