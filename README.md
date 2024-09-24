@@ -21,7 +21,7 @@ See Releases
 
 ```go
 tr := &http.Transport{
-	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+      TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 }
 ```
 
@@ -33,7 +33,7 @@ gdown.exe -h
 2020/01/30 20:49:44 Project: https://github.com/dhcgn/GitLabFileDownloader/
 Usage of gitlabfiledownloader.exe:
   -branch string
-        Branch (default "master")
+        Branch (default "main")
   -exclude string
         Exclude these regex pattern
   -includeonly string
@@ -49,20 +49,19 @@ Usage of gitlabfiledownloader.exe:
   -repoFolder string
         Folder to write file to disk
   -token string
-        Private-Token with access right for "api" and "read_repository"
+        Private-Token with access right for "api" and "read_repository", role must be minimum "Reporter"
   -url string
         Url to Api v4, like https://my-git-lab-server.local/api/v4/
 ```
 
 ## Use Case
 
-### Download file from your gitlab repository 
+### Download file from your gitlab repository
 
 You want to have the benefits from git to manage your config files.
 With this (windows and linux) tool you can now download theses config files from an on-promise GitLab instance and save them to disk.
 
 The file will be **only** replaced if the hash is different (from disk to git).
-
 
 **Working example!**
 
@@ -79,7 +78,7 @@ gdown.exe -outPath settings.json -projectNumber 16447351 -repoFilePath settings.
 2022/01/19 21:16:18 Wrote file: settings.json , because is new or changed
 ```
 
-### Download folder from your gitlab repository 
+### Download folder from your gitlab repository
 
 **Working example!**
 

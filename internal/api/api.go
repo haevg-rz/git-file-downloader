@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -32,7 +32,12 @@ func httpGetInternal(apiUrl string, settings internal.Settings) ([]byte, error) 
 	if err != nil {
 		return nil, err
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("HTTP GET failed with status code %v", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +46,23 @@ func httpGetInternal(apiUrl string, settings internal.Settings) ([]byte, error) 
 		return nil, err
 	}
 	return body, nil
+}
+
+func GetBranches(settings internal.Settings) ([]GitLabBranch, error) {
+	apiUrl := fmt.Sprintf("%vprojects/%v/repository/branches", settings.ApiUrl, settings.ProjectNumber)
+	body, err := HttpGetFunc(apiUrl, settings)
+	if err != nil {
+		return nil, err
+	}
+
+	var responseStruct []GitLabBranch
+	err = json.Unmarshal(body, &responseStruct)
+
+	return responseStruct, err
+}
+
+type GitLabBranch struct {
+	Name string `json:"name"`
 }
 
 func GetFilesFromFolder(settings internal.Settings) ([]GitLabRepoFile, error) {
@@ -54,9 +76,9 @@ func GetFilesFromFolder(settings internal.Settings) ([]GitLabRepoFile, error) {
 	}
 
 	var responseStruct []GitLabRepoFile
-	json.Unmarshal(body, &responseStruct)
+	err = json.Unmarshal(body, &responseStruct)
 
-	return responseStruct, nil
+	return responseStruct, err
 }
 
 type GitLabRepoFile struct {

@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -19,20 +18,19 @@ import (
 	"github.com/dhcgn/GitLabFileDownloader/internal/api"
 )
 
-const (
-	AppName = "GitLab File Downloader"
-)
+// AppName is the name of the application
+const AppName = "GitLab File Downloader"
 
 var (
 	version  = "undef"
 	commitID = "undef"
 
-	flagTokenPtr = flag.String(internal.FlagNameToken, ``, `Private-Token with access right for "api" and "read_repository"`)
+	flagTokenPtr = flag.String(internal.FlagNameToken, ``, `Private-Token with access right for "api" and "read_repository, role must be minimum "Reporter""`)
 
 	flagOutPathPtr      = flag.String(internal.FlagNameOutPath, ``, "Path to write file to disk")
 	flagRepoFilePathPar = flag.String(internal.FlagNameRepoFilePath, ``, "File path in repo, like src/main.go")
 
-	flagBranchPtr = flag.String(internal.FlagNameBranch, `master`, "Branch")
+	flagBranchPtr = flag.String(internal.FlagNameBranch, `main`, "Branch")
 
 	flagOutFolderPtr      = flag.String(internal.FlagNameOutFolder, ``, "Folder to write file to disk")
 	flagRepoFolderPathPtr = flag.String(internal.FlagNameRepoFolderPathEscaped, ``, "Folder to write file to disk")
@@ -45,10 +43,10 @@ var (
 )
 
 func main() {
-	mainSub(os.Args)
+	mainSub()
 }
 
-func mainSub(args []string) {
+func mainSub() {
 	log.Println(AppName, "Version:", version, "Commit:", commitID)
 	log.Println(`Project: https://github.com/dhcgn/GitLabFileDownloader/`)
 
@@ -63,6 +61,25 @@ func mainSub(args []string) {
 		return
 	}
 
+	branches, err := api.GetBranches(settings)
+	if err != nil || len(branches) == 0 {
+		log.Println("Error GetBranches:", err)
+		return
+	}
+
+	found := false
+	for _, branch := range branches {
+		if branch.Name == settings.Branch {
+			found = true
+		}
+	}
+
+	if !found {
+		log.Println("Branch not found:", settings.Branch)
+		log.Println("Available branches:", branches)
+		return
+	}
+
 	switch settings.Mode() {
 	case internal.ModeFile:
 		log.Println("Mode: File")
@@ -71,7 +88,6 @@ func mainSub(args []string) {
 		log.Println("Mode: Folder")
 		folderModeHandling(settings)
 	}
-
 }
 
 // exists returns whether the given file or directory exists
@@ -148,12 +164,13 @@ func fileModeHandling(settings internal.Settings) {
 
 	if err != nil {
 		log.Println("Error at", settings.RepoFilePath, ":", err)
+		return
 	}
 	if new {
 		log.Println("Wrote file:", settings.RepoFilePath, ", because is new or changed")
-	} else {
-		log.Println("Skip:", settings.RepoFilePath, ", because content is equal")
+		return
 	}
+	log.Println("Skip:", settings.RepoFilePath, ", because content is equal")
 }
 
 func fileModeHandlingInternal(settings internal.Settings) (bool, error) {
@@ -181,7 +198,7 @@ func fileModeHandlingInternal(settings internal.Settings) (bool, error) {
 		return false, nil
 	}
 
-	err = ioutil.WriteFile(settings.OutFile, fileData, 0644)
+	err = os.WriteFile(settings.OutFile, fileData, 0644)
 	if err != nil {
 		return false, fmt.Errorf("WriteFile: %v", err)
 	}
@@ -206,8 +223,8 @@ func isOldFileEqual(gitLapFile api.GitLapFile, settings internal.Settings) (bool
 	return false, nil
 }
 
-func testTargetFolder(outFile string) (exists bool, dir string) {
-	dir = filepath.Dir(outFile)
+func testTargetFolder(outFile string) (bool, string) {
+	dir := filepath.Dir(outFile)
 	if _, err := os.Stat(dir); err == nil {
 		return true, dir
 	} else if os.IsNotExist(err) {
