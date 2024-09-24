@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -200,7 +199,7 @@ func fileModeHandlingInternal(settings internal.Settings) (bool, error) {
 		return false, nil
 	}
 
-	err = ioutil.WriteFile(settings.OutFile, fileData, 0644)
+	err = os.WriteFile(settings.OutFile, fileData, 0644)
 	if err != nil {
 		return false, fmt.Errorf("WriteFile: %v", err)
 	}
