@@ -48,6 +48,23 @@ func httpGetInternal(apiUrl string, settings internal.Settings) ([]byte, error) 
 	return body, nil
 }
 
+func GetBranches(settings internal.Settings) ([]GitLabBranch, error) {
+	apiUrl := fmt.Sprintf("%vprojects/%v/repository/branches", settings.ApiUrl, settings.ProjectNumber)
+	body, err := HttpGetFunc(apiUrl, settings)
+	if err != nil {
+		return nil, err
+	}
+
+	var responseStruct []GitLabBranch
+	json.Unmarshal(body, &responseStruct)
+
+	return responseStruct, nil
+}
+
+type GitLabBranch struct {
+	Name string `json:"name"`
+}
+
 func GetFilesFromFolder(settings internal.Settings) ([]GitLabRepoFile, error) {
 	path := url.QueryEscape(settings.RepoFolderPath)
 	branch := url.QueryEscape(settings.Branch)

@@ -32,7 +32,7 @@ var (
 	flagOutPathPtr      = flag.String(internal.FlagNameOutPath, ``, "Path to write file to disk")
 	flagRepoFilePathPar = flag.String(internal.FlagNameRepoFilePath, ``, "File path in repo, like src/main.go")
 
-	flagBranchPtr = flag.String(internal.FlagNameBranch, `master`, "Branch")
+	flagBranchPtr = flag.String(internal.FlagNameBranch, `main`, "Branch")
 
 	flagOutFolderPtr      = flag.String(internal.FlagNameOutFolder, ``, "Folder to write file to disk")
 	flagRepoFolderPathPtr = flag.String(internal.FlagNameRepoFolderPathEscaped, ``, "Folder to write file to disk")
@@ -63,6 +63,25 @@ func mainSub() {
 		return
 	}
 
+	branches, err := api.GetBranches(settings)
+	if err != nil || len(branches) == 0 {
+		log.Println("Error GetBranches:", err)
+		return
+	}
+
+	found := false
+	for _, branch := range branches {
+		if branch.Name == settings.Branch {
+			found = true
+		}
+	}
+
+	if !found {
+		log.Println("Branch not found:", settings.Branch)
+		log.Println("Available branches:", branches)
+		return
+	}
+
 	switch settings.Mode() {
 	case internal.ModeFile:
 		log.Println("Mode: File")
@@ -71,7 +90,6 @@ func mainSub() {
 		log.Println("Mode: Folder")
 		folderModeHandling(settings)
 	}
-
 }
 
 // exists returns whether the given file or directory exists

@@ -33,7 +33,7 @@ gdown.exe -h
 2020/01/30 20:49:44 Project: https://github.com/dhcgn/GitLabFileDownloader/
 Usage of gitlabfiledownloader.exe:
   -branch string
-        Branch (default "master")
+        Branch (default "main")
   -exclude string
         Exclude these regex pattern
   -includeonly string

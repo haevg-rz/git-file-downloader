@@ -18,4 +18,3 @@ out
 secrets
 *.key
 **/test_local_dir
-.vscode/launch.json
