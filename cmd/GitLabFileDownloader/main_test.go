@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dhcgn/GitLabFileDownloader/internal"
-	"github.com/dhcgn/GitLabFileDownloader/internal/api"
+	"github.com/haevg-rz/git-file-downloader/internal"
+	"github.com/haevg-rz/git-file-downloader/internal/api"
 	"github.com/pkg/errors"
 )
 

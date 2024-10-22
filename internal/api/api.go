@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/dhcgn/GitLabFileDownloader/internal"
+	"github.com/haevg-rz/git-file-downloader/internal"
 )
 
 var (

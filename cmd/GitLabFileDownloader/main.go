@@ -14,8 +14,8 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/dhcgn/GitLabFileDownloader/internal"
-	"github.com/dhcgn/GitLabFileDownloader/internal/api"
+	"github.com/haevg-rz/git-file-downloader/internal"
+	"github.com/haevg-rz/git-file-downloader/internal/api"
 )
 
 // AppName is the name of the application
@@ -48,7 +48,7 @@ func main() {
 
 func mainSub() {
 	log.Println(AppName, "Version:", version, "Commit:", commitID)
-	log.Println(`Project: https://github.com/dhcgn/GitLabFileDownloader/`)
+	log.Println(`Project: https://github.com/haevg-rz/git-file-downloader/`)
 
 	flag.Parse()
 

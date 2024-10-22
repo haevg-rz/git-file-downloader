@@ -1,8 +1,8 @@
-# GitLabFileDownloader (gdown)
+# Git File Downloader (gdown)
 
-![Go](https://github.com/dhcgn/GitLabFileDownloader/workflows/Go/badge.svg)
-[![codecov](https://codecov.io/gh/dhcgn/GitLabFileDownloader/branch/master/graph/badge.svg)](https://codecov.io/gh/dhcgn/GitLabFileDownloader)
-[![Go Report Card](https://goreportcard.com/badge/github.com/dhcgn/GitLabFileDownloader)](https://goreportcard.com/report/github.com/dhcgn/GitLabFileDownloader)
+![Go](https://github.com/haevg-rz/git-file-downloader/workflows/Go/badge.svg)
+[![codecov](https://codecov.io/gh/haevg-rz/git-file-downloader/branch/master/graph/badge.svg)](https://codecov.io/gh/haevg-rz/git-file-downloader)
+[![Go Report Card](https://goreportcard.com/badge/github.com/haevg-rz/git-file-downloader)](https://goreportcard.com/report/github.com/haevg-rz/git-file-downloader)
 
 Download a file from a GitLab server and save it to disk if file is different.
 
@@ -30,7 +30,7 @@ tr := &http.Transport{
 ```plain
 gdown.exe -h
 2020/01/30 20:49:44 GitLab File Downloader Version: 2.0.2
-2020/01/30 20:49:44 Project: https://github.com/dhcgn/GitLabFileDownloader/
+2020/01/30 20:49:44 Project: https://github.com/haevg-rz/git-file-downloader/
 Usage of gitlabfiledownloader.exe:
   -branch string
         Branch (default "main")
@@ -73,7 +73,7 @@ gdown.exe -outPath settings.json -projectNumber 16447351 -repoFilePath settings.
 
 ```log
 2022/01/19 21:16:18 GitLab File Downloader Version: undef Commit: undef
-2022/01/19 21:16:18 Project: https://github.com/dhcgn/GitLabFileDownloader/
+2022/01/19 21:16:18 Project: https://github.com/haevg-rz/git-file-downloader/
 2022/01/19 21:16:18 Mode: File
 2022/01/19 21:16:18 Wrote file: settings.json , because is new or changed
 ```
@@ -90,7 +90,7 @@ gdown.exe -outFolder my_local_dir -projectNumber 16447351 -repoFolder test_dir -
 
 ```log
 2022/01/19 21:14:05 GitLab File Downloader Version: undef Commit: undef
-2022/01/19 21:14:05 Project: https://github.com/dhcgn/GitLabFileDownloader/
+2022/01/19 21:14:05 Project: https://github.com/haevg-rz/git-file-downloader/
 2022/01/19 21:14:05 Mode: Folder
 2022/01/19 21:14:06 Sync 5 files, from remote folder test_dir
 2022/01/19 21:14:06 Sync 4 files, from remote folder test_dir/test_space_special +ä$

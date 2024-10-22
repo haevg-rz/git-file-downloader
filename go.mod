@@ -1,4 +1,4 @@
-module github.com/dhcgn/GitLabFileDownloader
+module github.com/haevg-rz/git-file-downloader
 
 go 1.22
 

@@ -13,7 +13,6 @@ Build a Go application to various platforms
 Don't move this script, is must be in the root folder.
 
 .LINK
-https://github.com/dhcgn/GoTemplate
 
 #>
 
