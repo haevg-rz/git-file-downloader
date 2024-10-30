@@ -8,7 +8,7 @@ So I created this tutorial in which I save all my WireGuard configuration files 
 ## Prerequisite
 
 1. Install WireGuard
-2. Install [GitLabFileDownloader](https://github.com/haevg-rz/git-file-downloader/releases)
+2. Install [gdown](https://github.com/haevg-rz/git-file-downloader/releases)
 3. Install pwsh (PowerShell)
 4. SetUp GitLap Project
    1. Create New Project

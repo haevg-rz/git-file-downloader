@@ -4,26 +4,11 @@
 [![codecov](https://codecov.io/gh/haevg-rz/git-file-downloader/branch/master/graph/badge.svg)](https://codecov.io/gh/haevg-rz/git-file-downloader)
 [![Go Report Card](https://goreportcard.com/badge/github.com/haevg-rz/git-file-downloader)](https://goreportcard.com/report/github.com/haevg-rz/git-file-downloader)
 
-Download a file from a GitLab server and save it to disk if file is different.
+Download a file from a git hosting service and save it to disk if file is different, to ensure that the configuration files (or other files) on your servers are always up to date.
 
 ## Latest
 
 See Releases
-
-## Scopes for personal access tokens
-
-- `read_repository`: Allows read-access to the repository files.
-- `api`: Allows read-write access to the repository files.
-
-## TLS Security
-
-**Will be a config switch, soon.**
-
-```go
-tr := &http.Transport{
-      TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-}
-```
 
 ## Using
 
@@ -31,7 +16,7 @@ tr := &http.Transport{
 gdown.exe -h
 2020/01/30 20:49:44 GitLab File Downloader Version: 2.0.2
 2020/01/30 20:49:44 Project: https://github.com/haevg-rz/git-file-downloader/
-Usage of gitlabfiledownloader.exe:
+Usage of gdown.exe:
   -branch string
         Branch (default "main")
   -exclude string
@@ -65,7 +50,7 @@ The file will be **only** replaced if the hash is different (from disk to git).
 
 **Working example!**
 
-See https://gitlab.com/gitLabFileDownloader/test-project for file.
+See https://gitlab.com/gdown/test-project for file.
 
 ```bat
 gdown.exe -outPath settings.json -projectNumber 16447351 -repoFilePath settings.json -token 5BUJpxdVx9fyq5KrXJx6 -url https://gitlab.com/api/v4/
@@ -82,7 +67,7 @@ gdown.exe -outPath settings.json -projectNumber 16447351 -repoFilePath settings.
 
 **Working example!**
 
-See https://gitlab.com/gitLabFileDownloader/test-project for folder structure.
+See https://gitlab.com/gdown/test-project for folder structure.
 
 ```bat
 gdown.exe -outFolder my_local_dir -projectNumber 16447351 -repoFolder test_dir -token 5BUJpxdVx9fyq5KrXJx6 -url https://gitlab.com/api/v4/ -exclude .gitkeep
@@ -105,4 +90,25 @@ gdown.exe -outFolder my_local_dir -projectNumber 16447351 -repoFolder test_dir -
 2022/01/19 21:14:09 Wrote file: test_dir/file1.txt , because is new or changed
 2022/01/19 21:14:09 Wrote file: test_dir/file2.txt , because is new or changed
 2022/01/19 21:14:10 Wrote file: test_dir/file_space[ ].txt , because is new or changed
+```
+
+## Contributing
+
+- Github Copilot [.github\copilot-instructions.md](.github\copilot-instructions.md)
+
+## Technical
+
+### Scopes for personal access tokens
+
+- `read_repository`: Allows read-access to the repository files.
+- `api`: Allows read-write access to the repository files.
+
+### TLS Security
+
+**Will be a config switch, soon.**
+
+```go
+tr := &http.Transport{
+      TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+}
 ```
