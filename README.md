@@ -4,26 +4,11 @@
 [![codecov](https://codecov.io/gh/haevg-rz/git-file-downloader/branch/master/graph/badge.svg)](https://codecov.io/gh/haevg-rz/git-file-downloader)
 [![Go Report Card](https://goreportcard.com/badge/github.com/haevg-rz/git-file-downloader)](https://goreportcard.com/report/github.com/haevg-rz/git-file-downloader)
 
-Download a file from a GitLab server and save it to disk if file is different.
+Download a file from a git hosting service and save it to disk if file is different, to ensure that the configuration files (or other files) on your servers are always up to date.
 
 ## Latest
 
 See Releases
-
-## Scopes for personal access tokens
-
-- `read_repository`: Allows read-access to the repository files.
-- `api`: Allows read-write access to the repository files.
-
-## TLS Security
-
-**Will be a config switch, soon.**
-
-```go
-tr := &http.Transport{
-      TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-}
-```
 
 ## Using
 
@@ -105,4 +90,25 @@ gdown.exe -outFolder my_local_dir -projectNumber 16447351 -repoFolder test_dir -
 2022/01/19 21:14:09 Wrote file: test_dir/file1.txt , because is new or changed
 2022/01/19 21:14:09 Wrote file: test_dir/file2.txt , because is new or changed
 2022/01/19 21:14:10 Wrote file: test_dir/file_space[ ].txt , because is new or changed
+```
+
+## Contributing
+
+- Github Copilot [.github\copilot-instructions.md](.github\copilot-instructions.md)
+
+## Technical
+
+### Scopes for personal access tokens
+
+- `read_repository`: Allows read-access to the repository files.
+- `api`: Allows read-write access to the repository files.
+
+### TLS Security
+
+**Will be a config switch, soon.**
+
+```go
+tr := &http.Transport{
+      TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+}
 ```
