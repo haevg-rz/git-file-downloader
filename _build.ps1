@@ -77,7 +77,7 @@ foreach ($item in $platforms ) {
         $extension = ".bin"
     }
         
-    $buildCode = (Join-Path -Path $rootFolder "cmd\GitLabFileDownloader")
+    $buildCode = (Join-Path -Path $rootFolder "cmd\gdown")
    
     $count += 1
     Write-Progress -Activity ("Build $($item.GOOS) $($item.GOARCH)") -Status "Build publish" -PercentComplete ([Double]$count / $maxCount * 100)

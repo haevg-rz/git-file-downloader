@@ -16,7 +16,7 @@ See Releases
 gdown.exe -h
 2020/01/30 20:49:44 GitLab File Downloader Version: 2.0.2
 2020/01/30 20:49:44 Project: https://github.com/haevg-rz/git-file-downloader/
-Usage of gitlabfiledownloader.exe:
+Usage of gdown.exe:
   -branch string
         Branch (default "main")
   -exclude string
@@ -50,7 +50,7 @@ The file will be **only** replaced if the hash is different (from disk to git).
 
 **Working example!**
 
-See https://gitlab.com/gitLabFileDownloader/test-project for file.
+See https://gitlab.com/gdown/test-project for file.
 
 ```bat
 gdown.exe -outPath settings.json -projectNumber 16447351 -repoFilePath settings.json -token 5BUJpxdVx9fyq5KrXJx6 -url https://gitlab.com/api/v4/
@@ -67,7 +67,7 @@ gdown.exe -outPath settings.json -projectNumber 16447351 -repoFilePath settings.
 
 **Working example!**
 
-See https://gitlab.com/gitLabFileDownloader/test-project for folder structure.
+See https://gitlab.com/gdown/test-project for folder structure.
 
 ```bat
 gdown.exe -outFolder my_local_dir -projectNumber 16447351 -repoFolder test_dir -token 5BUJpxdVx9fyq5KrXJx6 -url https://gitlab.com/api/v4/ -exclude .gitkeep

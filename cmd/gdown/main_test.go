@@ -253,7 +253,7 @@ func setFlagsFile(path string) {
 	url := "https://gitlab.com/api/v4/"
 	flagUrlPtr = &url
 
-	// This token for https://gitlab.com/gitLabFileDownloader/test-project/blob/master/settings.json
+	// This token for https://gitlab.com/gdown/test-project/blob/master/settings.json
 	token := "5BUJpxdVx9fyq5KrXJx6"
 	flagTokenPtr = &token
 
@@ -280,7 +280,7 @@ func setFlagsFolder(folder string) {
 	url := "https://gitlab.com/api/v4/"
 	flagUrlPtr = &url
 
-	// This token for https://gitlab.com/gitLabFileDownloader/test-project/blob/master/settings.json
+	// This token for https://gitlab.com/gdown/test-project/blob/master/settings.json
 	token := "5BUJpxdVx9fyq5KrXJx6"
 	flagTokenPtr = &token
 
@@ -297,7 +297,7 @@ func captureOutput(f func()) string {
 }
 
 func getContent() []byte {
-	// file: https://gitlab.com/gitLabFileDownloader/test-project/blob/master/settings.json
+	// file: https://gitlab.com/gdown/test-project/blob/master/settings.json
 	const contentBase64 = "ewogICAgImZydWl0IjogIkFwcGxlIiwKICAgICJzaXplIjogIkxhcmdlIiwKICAgICJjb2xvciI6ICJSZWQiCn0K"
 	data, err := base64.StdEncoding.DecodeString(contentBase64)
 	if err != nil {
