@@ -94,7 +94,7 @@ gdown.exe -outFolder my_local_dir -projectNumber 16447351 -repoFolder test_dir -
 
 ## Contributing
 
-- Github Copilot [.github\copilot-instructions.md](.github\copilot-instructions.md)
+- Github Copilot [.github/copilot-instructions.md](.github/copilot-instructions.md)
 
 ## Technical
 
