@@ -15,7 +15,7 @@ var (
 
 type IGitLabApi interface {
 	GetAvailableBranches() ([]GitLabBranch, error)
-	GetBranchByName(string) (bool, error)
+	BranchExists(string) (bool, error)
 	GetFile(string, string) (*GitLabFile, error)
 	GetFilesFromFolder(string, string) ([]GitLabRepoFile, error)
 }
@@ -34,15 +34,15 @@ type GitLabRepoFile struct {
 	Mode string `json:"mode"`
 }
 
+type GitLabBranch struct {
+	Name string `json:"name"`
+}
+
 type GitLabApi struct {
 	UserAgent     string
 	ApiBaseUrl    string
 	PrivateToken  string
 	ProjectNumber int
-}
-
-type GitLabBranch struct {
-	Name string `json:"name"`
 }
 
 func NewGitLabApi(userAgent, apiBaseUrl, privateToken string, projectNumber int) *GitLabApi {
@@ -103,7 +103,7 @@ func (g *GitLabApi) GetAvailableBranches() ([]GitLabBranch, error) {
 	return availableBranches, err
 }
 
-func (g *GitLabApi) GetBranchByName(branch string) (bool, error) {
+func (g *GitLabApi) BranchExists(branch string) (bool, error) {
 	branches, err := g.GetAvailableBranches()
 	if err != nil {
 		return false, err

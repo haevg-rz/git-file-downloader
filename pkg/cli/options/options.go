@@ -5,6 +5,7 @@ type Options struct {
 	Branch         string
 	IncludePattern string
 	ExcludePattern string
+	LogLevel       int
 	Api            *ApiOptions
 }
 
@@ -24,6 +25,7 @@ var Current *Options = &Options{
 	Branch:         "main",
 	IncludePattern: "",
 	ExcludePattern: "",
+	LogLevel:       1,
 	Api: &ApiOptions{
 		UserAgent:     "Go-http-client/1.1",
 		PrivateToken:  "",

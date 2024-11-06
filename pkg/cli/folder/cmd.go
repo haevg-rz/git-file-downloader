@@ -1,12 +1,16 @@
 package folder
 
 import (
+	"errors"
+	"fmt"
 	"github.com/haevg-rz/git-file-downloader/pkg/api"
 	"github.com/haevg-rz/git-file-downloader/pkg/cli/folder/options"
 	globalOptions "github.com/haevg-rz/git-file-downloader/pkg/cli/options"
+	"github.com/haevg-rz/git-file-downloader/pkg/cli/validate"
+	"github.com/haevg-rz/git-file-downloader/pkg/exit"
+	"github.com/haevg-rz/git-file-downloader/pkg/log"
 	"github.com/haevg-rz/git-file-downloader/pkg/logic"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 const (
@@ -18,14 +22,32 @@ const (
 var rootCmd *cobra.Command = &cobra.Command{
 	Use:   "folder",
 	Short: "runs in folder mode",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return validate.Flags(map[string]interface{}{
+			FlagOutFolder:      options.Current.OutFolder,
+			FlagRepoFolderPath: options.Current.RepoFolderPath,
+		})
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.Println("running folder mode.")
+		log.V(1).Println("FOLDER MODE")
 
-		fileDownloader := logic.NewGitFileDownloader(api.NewGitLabApi(
+		var gitApi api.IGitLabApi = api.NewGitLabApi(
 			globalOptions.Current.Api.UserAgent,
 			globalOptions.Current.Api.ApiBaseUrl,
 			globalOptions.Current.Api.PrivateToken,
-			globalOptions.Current.Api.ProjectNumber))
+			globalOptions.Current.Api.ProjectNumber)
+
+		exists, err := gitApi.BranchExists(globalOptions.Current.Branch)
+		if !exists {
+			exit.Code = exit.BranchNotFound
+
+			if err != nil {
+				return err
+			}
+			return errors.New(fmt.Sprintf("branch '%s' does not exist\n", globalOptions.Current.Branch))
+		}
+
+		fileDownloader := logic.NewGitFileDownloader(gitApi)
 
 		created, err := fileDownloader.HandleFolder(
 			options.Current.OutFolder,
@@ -39,11 +61,11 @@ var rootCmd *cobra.Command = &cobra.Command{
 		}
 
 		if !created {
-			log.Println("folder is up to date.")
+			log.V(1).Println("folder is up to date.")
 			return nil
 		}
 
-		log.Println("synced folder successfully")
+		log.V(1).Println("synced folder successfully")
 
 		return nil
 	},
