@@ -3,115 +3,123 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
+	"strconv"
 )
 
 var _ IGitApi = &GitLabApi{}
 
-// GitLabFile describes a file returned from the gitLabApi
-type GitLabFile struct {
-	FileName      string `json:"file_name"`
-	ContentSha256 string `json:"content_sha256"`
-	Content       string
+// GitLabRepoFile describes a file returned from the gitLabApi
+type GitLabRepoFile struct {
+	Name    string `json:"file_name"`
+	Sha256  string `json:"content_sha256"`
+	Content string `json:"content"`
 }
 
 // GitLabRepoNode describes either a file or directory ("tree") returned from the gitLabApi.
 // Contains metadata about path, type, id, etc.
 type GitLabRepoNode struct {
-	ID   string `json:"id"`
 	Name string `json:"name"`
 	Type string `json:"type"`
 	Path string `json:"path"`
-	Mode string `json:"mode"`
-}
-
-// GitLabBranch contains the name of a branch returned from the gitLabApi.
-type GitLabBranch struct {
-	Name string `json:"name"`
 }
 
 // GitLabApi is used for communication to the gitLabApi. Instance fields are used as base-configuration for every request.
 // Implements IGitApi.
 type GitLabApi struct {
-	Base          *GitApi
-	ProjectNumber int
+	base          *Config
+	projectNumber int
 }
+
+const (
+	gitlabNodeTemplate   = "%s/projects/%s/repository/tree/?ref=%s&path=%s"
+	filePath             = "%s/projects/%s/repository/files/%s?ref=%s"
+	gitlabBranchTemplate = "%s/projects/%s/repository/branches"
+)
 
 // NewGitLabApi creates a new instance of the git lab api
-func NewGitLabApi(userAgent, apiBaseUrl, privateToken string, projectNumber int) *GitLabApi {
+func NewGitLabApi(privateToken, userAgent, apiBaseUrl string, projectNumber int) *GitLabApi {
 	return &GitLabApi{
-		Base: &GitApi{
-			AuthToken: privateToken,
-			UserAgent: userAgent,
-			Url:       apiBaseUrl,
+		base: &Config{
+			url: apiBaseUrl,
+			defaultHeader: map[string]string{
+				"Private-Token": privateToken,
+				"User-Agent":    userAgent,
+			},
 		},
-		ProjectNumber: projectNumber,
+		projectNumber: projectNumber,
 	}
 }
 
-// GetFile retrieves remote file from a given path and branch
-func (g *GitLabApi) GetFile(repoFilePath, branchName string) (*GitLabFile, error) {
-	var gitFile *GitLabFile
+// GetRemoteFile retrieves remote file from a given path and branch
+func (g *GitLabApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
+	var gitLabFile *GitRepoFile
+	fullUrl := CreateUrl(filePath, g.base.url, strconv.Itoa(g.projectNumber), path, branch)
+	fmt.Println(fullUrl)
 
-	path := url.QueryEscape(repoFilePath)
-	branch := url.QueryEscape(branchName)
-
-	fullUrl := fmt.Sprintf("%vprojects/%v/repository/files/%v?ref=%v", g.Base.Url, g.ProjectNumber, path, branch)
-
-	body, err := HttpGetFunc(fullUrl, g.Base.AuthToken, g.Base.UserAgent)
+	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)
 	if err != nil {
-		return &GitLabFile{}, err
+		return nil, err
 	}
 
-	err = json.Unmarshal(body, &gitFile)
+	err = json.Unmarshal(body, &gitLabFile)
 	if err != nil {
-		return &GitLabFile{}, err
+		return nil, err
 	}
 
-	return gitFile, nil
+	return &GitRepoFile{
+		Name:    gitLabFile.Name,
+		Sha256:  gitLabFile.Sha256,
+		Content: gitLabFile.Content,
+	}, nil
 }
 
 // GetFilesFromFolder retrieves All remote files/folders from a given path and branch
-func (g *GitLabApi) GetFilesFromFolder(repoFolderPath, branch string) ([]GitLabRepoNode, error) {
-	path := url.QueryEscape(repoFolderPath)
-	branchEsc := url.QueryEscape(branch)
-	fullUrl := fmt.Sprintf("%vprojects/%v/repository/tree/?ref=%v&path=%v", g.Base.Url, g.ProjectNumber, branchEsc, path)
+func (g *GitLabApi) GetFilesFromFolder(path, branch string) ([]GitRepoNode, error) {
+	gitLabNodes := make([]GitLabRepoNode, 0)
+	gitNodes := make([]GitRepoNode, 0)
+	fullUrl := CreateUrl(gitlabNodeTemplate, g.base.url, strconv.Itoa(g.projectNumber), branch, path)
 
-	body, err := HttpGetFunc(fullUrl, g.Base.AuthToken, g.Base.UserAgent)
+	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)
 	if err != nil {
 		return nil, err
 	}
 
-	var result []GitLabRepoNode
-	err = json.Unmarshal(body, &result)
+	err = json.Unmarshal(body, &gitLabNodes)
+	if err != nil {
+		return nil, err
+	}
 
-	return result, err
+	for _, node := range gitLabNodes {
+		gitNodes = append(gitNodes, GitRepoNode{
+			Name: node.Name,
+			Type: node.Type,
+			Path: node.Path,
+		})
+	}
+
+	return gitNodes, nil
 }
 
 // GetAvailableBranches retrieves all available branches.
-func (g *GitLabApi) GetAvailableBranches() ([]GitLabBranch, error) {
-	body, err := HttpGetFunc(fmt.Sprintf("%vprojects/%v/repository/branches", g.Base.Url, g.ProjectNumber), g.Base.AuthToken, g.Base.UserAgent)
+func (g *GitLabApi) GetAvailableBranches() ([]string, error) {
+	var branches []GitBranch
+	var branchesStr []string
+	fullUrl := CreateUrl(gitlabBranchTemplate, g.base.url, strconv.Itoa(g.projectNumber))
+	fmt.Println(fullUrl)
+
+	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)
 	if err != nil {
 		return nil, err
 	}
 
-	var availableBranches []GitLabBranch
-	err = json.Unmarshal(body, &availableBranches)
-
-	return availableBranches, err
-}
-
-// BranchExists checks whether a certain branch exists. Calls GetAvailableBranches internally.
-func (g *GitLabApi) BranchExists(branch string) (bool, error) {
-	branches, err := g.GetAvailableBranches()
+	err = json.Unmarshal(body, &branches)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	for _, val := range branches {
-		if val.Name == branch {
-			return true, nil
-		}
+	for _, branch := range branches {
+		branchesStr = append(branchesStr, branch.Name)
 	}
-	return false, nil
+
+	return branchesStr, nil
 }

@@ -13,28 +13,50 @@ var (
 
 // IGitApi Describes the expected behaviour of the gitLabApi.
 type IGitApi interface {
-	GetAvailableBranches() ([]GitLabBranch, error)
-	BranchExists(string) (bool, error)
-	GetFile(string, string) (*GitLabFile, error)
-	GetFilesFromFolder(string, string) ([]GitLabRepoNode, error)
+	GetAvailableBranches() ([]string, error)
+	GetRemoteFile(filePath, branch string) (*GitRepoFile, error)
+	GetFilesFromFolder(folderPath, branch string) ([]GitRepoNode, error)
 }
 
-// GitApi Base struct for all implementations of IGitApi.
-type GitApi struct {
-	AuthToken string
-	UserAgent string
-	Url       string
+// Config base struct for all implementations of IGitApi.
+type Config struct {
+	url           string
+	defaultHeader map[string]string
 }
 
-// GitFile Describes a single git file, independent of the git-platform
-type GitFile struct {
-	Name          string
-	ContentSha256 string
-	Content       string
+// GitRepoFile Describes a single git file, independent of the git-platform
+type GitRepoFile struct {
+	Name    string
+	Sha256  string
+	Content string
+}
+
+type GitRepoNode struct {
+	Name string
+	Type string
+	Path string
+}
+
+type GitBranch struct {
+	Name string `json:"name"`
+}
+
+func NewConfig() *Config {
+	return &Config{}
+}
+
+func CreateUrl(templateUrl string, args ...string) string {
+	escapedArgs := make([]interface{}, len(args))
+	for i, arg := range args {
+		// TODO FIX
+		//escapedArgs[i] = url.PathEscape(arg)
+		escapedArgs[i] = arg
+	}
+	return fmt.Sprintf(templateUrl, escapedArgs...)
 }
 
 // httpGetInternal sends GET-Request with given fullUrl, privateToken (for api) and userAgent. Returns the response body.
-func httpGetInternal(fullUrl, privateToken, userAgent string) ([]byte, error) {
+func httpGetInternal(fullUrl string, header map[string]string) ([]byte, error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -43,8 +65,10 @@ func httpGetInternal(fullUrl, privateToken, userAgent string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Private-Token", privateToken)
-	req.Header.Add("User-Agent", userAgent)
+
+	for key, val := range header {
+		req.Header.Add(key, val)
+	}
 
 	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
@@ -61,7 +85,7 @@ func httpGetInternal(fullUrl, privateToken, userAgent string) ([]byte, error) {
 		return nil, err
 	}
 
-	if err := resp.Body.Close(); err != nil {
+	if err = resp.Body.Close(); err != nil {
 		return nil, err
 	}
 

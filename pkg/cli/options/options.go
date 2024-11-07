@@ -5,6 +5,7 @@ type Options struct {
 	Branch         string
 	IncludePattern string
 	ExcludePattern string
+	GitProvider    string
 	LogLevel       int
 	Api            *ApiOptions
 }
@@ -12,7 +13,7 @@ type Options struct {
 type ApiOptions struct {
 	UserAgent     string
 	PrivateToken  string
-	ApiBaseUrl    string
+	BaseUrl       string
 	ProjectNumber int
 }
 
@@ -25,11 +26,12 @@ var Current *Options = &Options{
 	Branch:         "main",
 	IncludePattern: "",
 	ExcludePattern: "",
+	GitProvider:    "",
 	LogLevel:       1,
 	Api: &ApiOptions{
 		UserAgent:     "Go-http-client/1.1",
 		PrivateToken:  "",
-		ApiBaseUrl:    "https://gitlab.com/api/v4/",
+		BaseUrl:       "https://gitlab.com/api/v4",
 		ProjectNumber: -1,
 	},
 }

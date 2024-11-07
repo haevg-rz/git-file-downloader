@@ -16,6 +16,7 @@ const (
 	FlagProjectNumber  = "project-number"
 	FlagIncludePattern = "include-pattern"
 	FlagExcludePattern = "exclude-pattern"
+	FlagGitProvider    = "git-provider"
 	FlagLogLevel       = "log-level"
 
 	FlagPrivateToken = "token"
@@ -39,6 +40,7 @@ var rootCmd *cobra.Command = &cobra.Command{
 		return validate.Flags(map[string]interface{}{
 			FlagPrivateToken:  options.Current.Api.PrivateToken,
 			FlagProjectNumber: options.Current.Api.ProjectNumber,
+			FlagGitProvider:   options.Current.GitProvider,
 		})
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -61,6 +63,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&options.Current.Branch, FlagBranch, options.Current.Branch, "Branch name")
 	rootCmd.PersistentFlags().StringVar(&options.Current.IncludePattern, FlagIncludePattern, options.Current.IncludePattern, "Include this regex pattern")
 	rootCmd.PersistentFlags().StringVar(&options.Current.ExcludePattern, FlagExcludePattern, options.Current.ExcludePattern, "Exclude this regex pattern")
+	rootCmd.PersistentFlags().StringVar(&options.Current.GitProvider, FlagGitProvider, options.Current.GitProvider, "git provider to use (GITHUB, GITLAB and AZURE)")
 
 	// log level flag
 	rootCmd.PersistentFlags().IntVar(&options.Current.LogLevel, FlagLogLevel, options.Current.LogLevel, "Higher loglevel leads to more verbose logging. Set log level to 0 if you dont want any logging.")
@@ -69,5 +72,5 @@ func init() {
 	rootCmd.PersistentFlags().IntVar(&options.Current.Api.ProjectNumber, FlagProjectNumber, options.Current.Api.ProjectNumber, "The Project ID from your project")
 	rootCmd.PersistentFlags().StringVar(&options.Current.Api.PrivateToken, FlagPrivateToken, options.Current.Api.PrivateToken, "Private-Token with access right for \"api\" and \"read_repository\", role must be minimum \"Reporter\"")
 	rootCmd.PersistentFlags().StringVar(&options.Current.Api.UserAgent, FlagUserAgent, options.Current.Api.UserAgent, "User agent")
-	rootCmd.PersistentFlags().StringVar(&options.Current.Api.ApiBaseUrl, FlagUrl, options.Current.Api.ApiBaseUrl, "Url to Api v4, like https://my-git-lab-server.local/api/v4/")
+	rootCmd.PersistentFlags().StringVar(&options.Current.Api.BaseUrl, FlagUrl, options.Current.Api.BaseUrl, "url to Api v4, like https://my-git-lab-server.local/api/v4/")
 }

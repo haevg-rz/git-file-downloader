@@ -20,6 +20,12 @@ const (
 	InvalidOutPath
 
 	/*
+		UnknownGitProvider
+		Specified git provider is unknown. Valid options are: GITHUB, GITLAB, AZURE
+	*/
+	UnknownGitProvider
+
+	/*
 		BranchNotFound:
 		Could not find remote branch
 	*/

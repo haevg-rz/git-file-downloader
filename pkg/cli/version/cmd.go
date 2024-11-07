@@ -24,5 +24,5 @@ func Command() *cobra.Command {
 }
 
 func init() {
-	// flag definitions
+	// flag provider
 }

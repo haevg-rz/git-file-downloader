@@ -10,7 +10,9 @@ import (
 	"github.com/haevg-rz/git-file-downloader/pkg/exit"
 	"github.com/haevg-rz/git-file-downloader/pkg/log"
 	"github.com/haevg-rz/git-file-downloader/pkg/logic"
+	"github.com/haevg-rz/git-file-downloader/pkg/provider"
 	"github.com/spf13/cobra"
+	"slices"
 )
 
 const (
@@ -30,19 +32,37 @@ var rootCmd *cobra.Command = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.V(1).Println("FILE MODE")
 
-		var gitApi api.IGitApi = api.NewGitLabApi(
-			globalOptions.Current.Api.UserAgent,
-			globalOptions.Current.Api.ApiBaseUrl,
-			globalOptions.Current.Api.PrivateToken,
-			globalOptions.Current.Api.ProjectNumber)
+		var gitApi api.IGitApi
 
-		exists, err := gitApi.BranchExists(globalOptions.Current.Branch)
-		if !exists {
+		// TODO ADD AZURE DEV OPS
+		// TODO CREATE SEPARATE COMMANDS
+		switch globalOptions.Current.GitProvider {
+		case provider.Github:
+			gitApi = api.NewGitHubApi(
+				globalOptions.Current.Api.PrivateToken,
+				globalOptions.Current.Api.UserAgent,
+				globalOptions.Current.Api.BaseUrl,
+				"driema",
+				"kattis")
+		case provider.Gitlab:
+			gitApi = api.NewGitLabApi(
+				globalOptions.Current.Api.PrivateToken,
+				globalOptions.Current.Api.UserAgent,
+				globalOptions.Current.Api.BaseUrl,
+				globalOptions.Current.Api.ProjectNumber)
+		default:
+			exit.Code = exit.UnknownGitProvider
+			return fmt.Errorf("unsupported git provider: %s", globalOptions.Current.GitProvider)
+		}
+
+		branches, err := gitApi.GetAvailableBranches()
+		if err != nil {
 			exit.Code = exit.BranchNotFound
+			return err
+		}
 
-			if err != nil {
-				return err
-			}
+		if (branches != nil) && slices.Contains(branches, globalOptions.Current.Branch) == false {
+			exit.Code = exit.BranchNotFound
 			return errors.New(fmt.Sprintf("branch '%s' does not exist\n", globalOptions.Current.Branch))
 		}
 
@@ -52,7 +72,6 @@ var rootCmd *cobra.Command = &cobra.Command{
 			options.Current.OutFile,
 			options.Current.RepoFilePath,
 			globalOptions.Current.Branch)
-
 		if err != nil {
 			return err
 		}
@@ -73,7 +92,7 @@ func Command() *cobra.Command {
 }
 
 func init() {
-	// flag definitions
+	// flag provider
 	rootCmd.Flags().StringVar(&options.Current.OutFile, FlagOutFile, options.Current.OutFile, "output file")
 	rootCmd.Flags().StringVar(&options.Current.RepoFilePath, FlagRepoFilePath, options.Current.RepoFilePath, "File path in repo, like src/main.go")
 }

@@ -31,7 +31,7 @@ func (g *GitFileDownloader) HandleFile(outFile, repoFilePath, branch string) (bo
 		return false, fmt.Errorf("GetDirFromFilepath: folder '%v' doesn't exist", dir)
 	}
 
-	gitFile, err := g.gitApi.GetFile(repoFilePath, branch)
+	gitFile, err := g.gitApi.GetRemoteFile(repoFilePath, branch)
 	if err != nil {
 		exit.Code = exit.FailedToRetrieveRemoteFile
 		return false, fmt.Errorf("API Call exit: %v", err)
@@ -53,7 +53,7 @@ func (g *GitFileDownloader) HandleFile(outFile, repoFilePath, branch string) (bo
 		return false, fmt.Errorf("DecodeString: %v", err)
 	}
 
-	isEqual, err := IsHashEqual(outFile, gitFile.ContentSha256)
+	isEqual, err := IsHashEqual(outFile, gitFile.Sha256)
 	if err != nil {
 		exit.Code = exit.FailedToOpenFile
 		return false, fmt.Errorf("IsHashEqual: %v", err)
