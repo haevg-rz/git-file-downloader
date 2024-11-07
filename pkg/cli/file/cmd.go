@@ -30,7 +30,7 @@ var rootCmd *cobra.Command = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.V(1).Println("FILE MODE")
 
-		var gitApi api.IGitLabApi = api.NewGitLabApi(
+		var gitApi api.IGitApi = api.NewGitLabApi(
 			globalOptions.Current.Api.UserAgent,
 			globalOptions.Current.Api.ApiBaseUrl,
 			globalOptions.Current.Api.PrivateToken,
@@ -58,11 +58,11 @@ var rootCmd *cobra.Command = &cobra.Command{
 		}
 
 		if !created {
-			log.V(1).Println("Skip:", options.Current.RepoFilePath, ", because content is equal")
+			log.V(1).Printf("Skip: %s, because content is equal", options.Current.RepoFilePath)
 			return nil
 		}
 
-		log.V(1).Println("Wrote file:", options.Current.RepoFilePath, ", because is new or changed")
+		log.V(1).Printf("Wrote file: %s, because is new or changed", options.Current.RepoFilePath)
 
 		return nil
 	},

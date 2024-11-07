@@ -59,7 +59,7 @@ const (
 
 	/*
 		FailedToRetrieveRemoteFile:
-		Failed to get file from remote repository
+		Failed to get file from remote repository. Can happen due to faulty remote path.
 	*/
 	FailedToRetrieveRemoteFile
 

@@ -31,7 +31,7 @@ var rootCmd *cobra.Command = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		log.V(1).Println("FOLDER MODE")
 
-		var gitApi api.IGitLabApi = api.NewGitLabApi(
+		var gitApi api.IGitApi = api.NewGitLabApi(
 			globalOptions.Current.Api.UserAgent,
 			globalOptions.Current.Api.ApiBaseUrl,
 			globalOptions.Current.Api.PrivateToken,

@@ -17,11 +17,11 @@ type IGitFileDownloader interface {
 }
 
 type GitFileDownloader struct {
-	gitLabApi api.IGitLabApi
+	gitApi api.IGitApi
 }
 
-func NewGitFileDownloader(gitLabApi api.IGitLabApi) *GitFileDownloader {
-	return &GitFileDownloader{gitLabApi: gitLabApi}
+func NewGitFileDownloader(gitApi api.IGitApi) *GitFileDownloader {
+	return &GitFileDownloader{gitApi: gitApi}
 }
 
 func (g *GitFileDownloader) HandleFile(outFile, repoFilePath, branch string) (bool, error) {
@@ -31,20 +31,20 @@ func (g *GitFileDownloader) HandleFile(outFile, repoFilePath, branch string) (bo
 		return false, fmt.Errorf("GetDirFromFilepath: folder '%v' doesn't exist", dir)
 	}
 
+	gitFile, err := g.gitApi.GetFile(repoFilePath, branch)
+	if err != nil {
+		exit.Code = exit.FailedToRetrieveRemoteFile
+		return false, fmt.Errorf("API Call exit: %v", err)
+	}
+
 	fileExists := FileExists(outFile)
 	if !fileExists {
-		_, err := os.Create(outFile)
+		_, err = os.Create(outFile)
 		if err != nil {
 			exit.Code = exit.FailedToCreateFile
 			return false, fmt.Errorf("CreateFile: '%v'", err)
 		}
 		log.V(2).Printf("Created File: '%s' because it didn't exist\n", outFile)
-	}
-
-	gitFile, err := g.gitLabApi.GetFile(repoFilePath, branch)
-	if err != nil {
-		exit.Code = exit.FailedToRetrieveRemoteFile
-		return false, fmt.Errorf("API Call exit: %v", err)
 	}
 
 	fileData, err := base64.StdEncoding.DecodeString(gitFile.Content)
@@ -82,7 +82,7 @@ func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, incl
 		}
 	}
 
-	files, err := g.gitLabApi.GetFilesFromFolder(repoFolderPath, branch)
+	files, err := g.gitApi.GetFilesFromFolder(repoFolderPath, branch)
 	if err != nil {
 		exit.Code = exit.FailedToGetFilesFromRemoteFolder
 		return false, err

@@ -25,10 +25,16 @@ const (
 
 var rootCmd *cobra.Command = &cobra.Command{
 	Use:   "gdown",
-	Short: "git file downloader",
+	Short: "gdown",
+	Long:  "git-file-downloader",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// set global log level
 		log.Level = options.Current.LogLevel
+
+		// no flags needed for version subcommand
+		if cmd.CalledAs() == "version" || cmd.CalledAs() == "help" {
+			return nil
+		}
 
 		return validate.Flags(map[string]interface{}{
 			FlagPrivateToken:  options.Current.Api.PrivateToken,
@@ -36,7 +42,7 @@ var rootCmd *cobra.Command = &cobra.Command{
 		})
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.V(1).Println("please use a subcommand...")
+		log.V(1).Println("please use a subcommand... (--help for more details)")
 		return nil
 	},
 }
