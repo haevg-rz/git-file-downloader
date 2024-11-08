@@ -5,7 +5,7 @@ import (
 )
 
 type AzureGitApi struct {
-	Base *Config
+	Base *SharedConfig
 }
 
 func (a AzureGitApi) GetHash() hash.Hash {
@@ -17,7 +17,7 @@ var _ IGitApi = &AzureGitApi{}
 
 func NewAzureGitApi(auth, userAgent, url string) *AzureGitApi {
 	return &AzureGitApi{
-		Base: &Config{
+		Base: &SharedConfig{
 			url:           url,
 			defaultHeader: nil,
 		},

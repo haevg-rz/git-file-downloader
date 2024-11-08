@@ -6,10 +6,6 @@ type Options struct {
 	Branch         string
 	IncludePattern string
 	ExcludePattern string
-	GitProvider    string
-	Owner          string
-	Repo           string
-	ProjectNumber  int
 	LogLevel       int
 	Api            *ApiOptions
 }
@@ -30,14 +26,9 @@ var Current *Options = &Options{
 	Branch:         "main",
 	IncludePattern: "",
 	ExcludePattern: "",
-	Owner:          "",
-	Repo:           "",
-	GitProvider:    "",
-	ProjectNumber:  -1,
 	LogLevel:       3,
 	Api: &ApiOptions{
 		UserAgent: "Go-http-client/1.1",
 		Auth:      "",
-		BaseUrl:   "",
 	},
 }

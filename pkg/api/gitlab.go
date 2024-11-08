@@ -29,7 +29,7 @@ type GitLabRepoNode struct {
 // GitLabApi is used for communication to the gitLabApi. Instance fields are used as base-configuration for every request.
 // Implements IGitApi.
 type GitLabApi struct {
-	base          *Config
+	base          *SharedConfig
 	projectNumber int
 }
 
@@ -42,7 +42,7 @@ const (
 // NewGitLabApi creates a new instance of the git lab api
 func NewGitLabApi(privateToken, userAgent, apiBaseUrl string, projectNumber int) *GitLabApi {
 	return &GitLabApi{
-		base: &Config{
+		base: &SharedConfig{
 			url: apiBaseUrl,
 			defaultHeader: map[string]string{
 				"Private-Token": privateToken,
@@ -63,7 +63,7 @@ func (g *GitLabApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
 		gitlabFileTemplate,
 		g.base.url,
 		url.PathEscape(strconv.Itoa(g.projectNumber)),
-		url.PathEscape(path),
+		path,
 		url.PathEscape(branch))
 
 	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)
@@ -97,7 +97,10 @@ func (g *GitLabApi) GetFilesFromFolder(path, branch string) ([]GitRepoNode, erro
 
 	fullUrl := fmt.Sprintf(
 		gitlabNodeTemplate,
-		url.PathEscape(g.base.url), strconv.Itoa(g.projectNumber), branch, path)
+		g.base.url,
+		url.PathEscape(strconv.Itoa(g.projectNumber)),
+		url.PathEscape(branch),
+		path)
 
 	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)
 	if err != nil {

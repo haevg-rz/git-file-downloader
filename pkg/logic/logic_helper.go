@@ -2,7 +2,6 @@ package logic
 
 import (
 	"encoding/hex"
-	"github.com/haevg-rz/git-file-downloader/pkg/log"
 	"hash"
 	"io"
 	"os"
@@ -53,6 +52,5 @@ func IsHashEqual(file, compareHash string, hash hash.Hash) (bool, error) {
 		return false, err
 	}
 
-	log.V(0).Println(hex.EncodeToString(hash.Sum(nil)), compareHash)
 	return hex.EncodeToString(hash.Sum(nil)) == compareHash, err
 }

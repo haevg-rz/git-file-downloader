@@ -9,7 +9,7 @@ import (
 )
 
 type GitHubApi struct {
-	base  *Config
+	base  *SharedConfig
 	owner string
 	repo  string
 }
@@ -38,7 +38,7 @@ var _ IGitApi = &GitHubApi{}
 
 func NewGitHubApi(bearerToken, userAgent, url, owner, repo string) *GitHubApi {
 	return &GitHubApi{
-		base: &Config{
+		base: &SharedConfig{
 			url: url,
 			defaultHeader: map[string]string{
 				"Authorization":        fmt.Sprintf("Bearer %s", bearerToken),
@@ -89,7 +89,7 @@ func (g *GitHubApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
 		g.base.url,
 		url.PathEscape(g.owner),
 		url.PathEscape(g.repo),
-		url.PathEscape(path),
+		path,
 		url.PathEscape(branch))
 
 	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)
@@ -117,10 +117,8 @@ func (g *GitHubApi) GetFilesFromFolder(path, branch string) ([]GitRepoNode, erro
 		g.base.url,
 		url.PathEscape(g.owner),
 		url.PathEscape(g.repo),
-		url.PathEscape(path),
+		path,
 		url.PathEscape(branch))
-
-	fmt.Println(fullUrl)
 
 	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)
 	if err != nil {

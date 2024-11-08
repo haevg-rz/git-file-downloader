@@ -6,6 +6,7 @@ import (
 	"hash"
 	"io"
 	"net/http"
+	"slices"
 )
 
 var (
@@ -20,8 +21,8 @@ type IGitApi interface {
 	GetHash() hash.Hash
 }
 
-// Config base struct for all implementations of IGitApi.
-type Config struct {
+// SharedConfig base struct for all implementations of IGitApi.
+type SharedConfig struct {
 	url           string
 	defaultHeader map[string]string
 }
@@ -43,8 +44,17 @@ type GitBranch struct {
 	Name string `json:"name"`
 }
 
-func NewConfig() *Config {
-	return &Config{}
+func NewSharedConfig() *SharedConfig {
+	return &SharedConfig{}
+}
+
+func ValidateBranch(api IGitApi, branch string) (bool, error) {
+	branches, err := api.GetAvailableBranches()
+	if err != nil {
+		return false, err
+	}
+
+	return (branches != nil) && slices.Contains(branches, branch), nil
 }
 
 // httpGetInternal sends GET-Request with given fullUrl, privateToken (for api) and userAgent. Returns the response body.

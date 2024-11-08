@@ -14,6 +14,13 @@ import (
 type IGitFileDownloader interface {
 	HandleFile(string, string, string) (bool, error)
 	HandleFolder(string, string, string, string, string) (bool, error)
+	Handle(string, string, string, string) (bool, error)
+}
+
+type Context struct {
+	OutPath    string
+	RemotePath string
+	Branch     string
 }
 
 type GitFileDownloader struct {
@@ -22,6 +29,24 @@ type GitFileDownloader struct {
 
 func NewGitFileDownloader(gitApi api.IGitApi) *GitFileDownloader {
 	return &GitFileDownloader{gitApi: gitApi}
+}
+
+func (g *GitFileDownloader) Handle(outPath, remotePath, branch, modeArg string) (bool, error) {
+	switch modeArg {
+	case "file":
+		return g.HandleFile(
+			outPath,
+			remotePath,
+			branch)
+	case "folder":
+		return g.HandleFolder(
+			outPath,
+			remotePath,
+			branch,
+			"",
+			"")
+	}
+	return false, fmt.Errorf("unsupported mode")
 }
 
 func (g *GitFileDownloader) HandleFile(outFile, repoFilePath, branch string) (bool, error) {
@@ -82,6 +107,7 @@ func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, incl
 		}
 	}
 
+	// rename files to nodes
 	files, err := g.gitApi.GetFilesFromFolder(repoFolderPath, branch)
 	if err != nil {
 		exit.Code = exit.FailedToGetFilesFromRemoteFolder
@@ -95,7 +121,7 @@ func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, incl
 			matched, err := regexp.MatchString(include, file.Name)
 			if err == nil {
 				if !matched {
-					log.V(3).Printf("Skip: '%s' because of include rule: '%s'\n", file.Name, include)
+					log.V(2).Printf("Skip: '%s' because of include rule: '%s'\n", file.Name, include)
 					continue
 				}
 			}
@@ -104,7 +130,7 @@ func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, incl
 			matched, err := regexp.MatchString(exclude, file.Name)
 			if err == nil {
 				if matched {
-					log.V(3).Printf("Skip: '%s' because of exclude rule: '%s'\n", file.Name, exclude)
+					log.V(2).Printf("Skip: '%s' because of exclude rule: '%s'\n", file.Name, exclude)
 					continue
 				}
 			}
@@ -124,12 +150,12 @@ func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, incl
 		}
 
 		if !modifiedOrCreated {
-			log.V(3).Printf("Skip: %s because content is equal\n", file.Path)
+			log.V(2).Printf("Skip: %s because content is equal\n", file.Path)
 			continue
 		}
 
 		updated = true
-		log.V(3).Printf("Wrote file: %s because is new or updated\n", file.Path)
+		log.V(2).Printf("Wrote file: %s because is new or updated\n", file.Path)
 	}
 
 	return updated, nil
