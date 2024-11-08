@@ -3,6 +3,7 @@ package api
 import (
 	"crypto/tls"
 	"fmt"
+	"hash"
 	"io"
 	"net/http"
 )
@@ -16,6 +17,7 @@ type IGitApi interface {
 	GetAvailableBranches() ([]string, error)
 	GetRemoteFile(filePath, branch string) (*GitRepoFile, error)
 	GetFilesFromFolder(folderPath, branch string) ([]GitRepoNode, error)
+	GetHash() hash.Hash
 }
 
 // Config base struct for all implementations of IGitApi.
@@ -27,7 +29,7 @@ type Config struct {
 // GitRepoFile Describes a single git file, independent of the git-platform
 type GitRepoFile struct {
 	Name    string
-	Sha256  string
+	Sha     string
 	Content string
 }
 
@@ -43,16 +45,6 @@ type GitBranch struct {
 
 func NewConfig() *Config {
 	return &Config{}
-}
-
-func CreateUrl(templateUrl string, args ...string) string {
-	escapedArgs := make([]interface{}, len(args))
-	for i, arg := range args {
-		// TODO FIX
-		//escapedArgs[i] = url.PathEscape(arg)
-		escapedArgs[i] = arg
-	}
-	return fmt.Sprintf(templateUrl, escapedArgs...)
 }
 
 // httpGetInternal sends GET-Request with given fullUrl, privateToken (for api) and userAgent. Returns the response body.

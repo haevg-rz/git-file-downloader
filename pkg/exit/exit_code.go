@@ -8,6 +8,12 @@ const (
 	Success = iota
 
 	/*
+		ReceivedSignal:
+		Signifies that the program received a signal while operating. for example: "^C"
+	*/
+	ReceivedSignal
+
+	/*
 		MissingFlags:
 		One or more mandatory flags are missing
 	*/

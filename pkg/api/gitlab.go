@@ -1,8 +1,11 @@
 package api
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"hash"
+	"net/url"
 	"strconv"
 )
 
@@ -32,7 +35,7 @@ type GitLabApi struct {
 
 const (
 	gitlabNodeTemplate   = "%s/projects/%s/repository/tree/?ref=%s&path=%s"
-	filePath             = "%s/projects/%s/repository/files/%s?ref=%s"
+	gitlabFileTemplate   = "%s/projects/%s/repository/files/%s?ref=%s"
 	gitlabBranchTemplate = "%s/projects/%s/repository/branches"
 )
 
@@ -53,8 +56,15 @@ func NewGitLabApi(privateToken, userAgent, apiBaseUrl string, projectNumber int)
 // GetRemoteFile retrieves remote file from a given path and branch
 func (g *GitLabApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
 	var gitLabFile *GitRepoFile
-	fullUrl := CreateUrl(filePath, g.base.url, strconv.Itoa(g.projectNumber), path, branch)
-	fmt.Println(fullUrl)
+
+	branch = url.PathEscape(branch)
+	path = url.PathEscape(path)
+	fullUrl := fmt.Sprintf(
+		gitlabFileTemplate,
+		g.base.url,
+		url.PathEscape(strconv.Itoa(g.projectNumber)),
+		url.PathEscape(path),
+		url.PathEscape(branch))
 
 	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)
 	if err != nil {
@@ -68,16 +78,26 @@ func (g *GitLabApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
 
 	return &GitRepoFile{
 		Name:    gitLabFile.Name,
-		Sha256:  gitLabFile.Sha256,
+		Sha:     gitLabFile.Sha,
 		Content: gitLabFile.Content,
 	}, nil
+}
+
+func (g *GitLabApi) GetHash() hash.Hash {
+	return sha256.New()
 }
 
 // GetFilesFromFolder retrieves All remote files/folders from a given path and branch
 func (g *GitLabApi) GetFilesFromFolder(path, branch string) ([]GitRepoNode, error) {
 	gitLabNodes := make([]GitLabRepoNode, 0)
 	gitNodes := make([]GitRepoNode, 0)
-	fullUrl := CreateUrl(gitlabNodeTemplate, g.base.url, strconv.Itoa(g.projectNumber), branch, path)
+
+	branch = url.PathEscape(branch)
+	path = url.PathEscape(path)
+
+	fullUrl := fmt.Sprintf(
+		gitlabNodeTemplate,
+		url.PathEscape(g.base.url), strconv.Itoa(g.projectNumber), branch, path)
 
 	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)
 	if err != nil {
@@ -104,8 +124,10 @@ func (g *GitLabApi) GetFilesFromFolder(path, branch string) ([]GitRepoNode, erro
 func (g *GitLabApi) GetAvailableBranches() ([]string, error) {
 	var branches []GitBranch
 	var branchesStr []string
-	fullUrl := CreateUrl(gitlabBranchTemplate, g.base.url, strconv.Itoa(g.projectNumber))
-	fmt.Println(fullUrl)
+	fullUrl := fmt.Sprintf(
+		gitlabBranchTemplate,
+		g.base.url,
+		url.PathEscape(strconv.Itoa(g.projectNumber)))
 
 	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)
 	if err != nil {

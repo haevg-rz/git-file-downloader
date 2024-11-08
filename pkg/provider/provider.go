@@ -1,7 +1,7 @@
 package provider
 
 const (
-	Github      = "GITHUB"
-	Gitlab      = "GITLAB"
+	Github      = "github"
+	Gitlab      = "gitlab"
 	AzureDevOps = "AZURE"
 )

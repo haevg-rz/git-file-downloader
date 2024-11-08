@@ -53,7 +53,7 @@ func (g *GitFileDownloader) HandleFile(outFile, repoFilePath, branch string) (bo
 		return false, fmt.Errorf("DecodeString: %v", err)
 	}
 
-	isEqual, err := IsHashEqual(outFile, gitFile.Sha256)
+	isEqual, err := IsHashEqual(outFile, gitFile.Sha, g.gitApi.GetHash())
 	if err != nil {
 		exit.Code = exit.FailedToOpenFile
 		return false, fmt.Errorf("IsHashEqual: %v", err)
@@ -110,7 +110,7 @@ func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, incl
 			}
 		}
 
-		if file.Type == "tree" {
+		if file.Type == "tree" || file.Type == "dir" {
 			updated, err = g.HandleFolder(path.Join(outFolder, file.Name), file.Path, branch, include, exclude)
 			if err != nil {
 				return updated, err

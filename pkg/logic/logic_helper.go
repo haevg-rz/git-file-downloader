@@ -1,8 +1,9 @@
 package logic
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
+	"github.com/haevg-rz/git-file-downloader/pkg/log"
+	"hash"
 	"io"
 	"os"
 	"path/filepath"
@@ -33,7 +34,8 @@ func IsValidPath(path string) bool {
 	return !os.IsNotExist(err)
 }
 
-func IsHashEqual(file, compareHash string) (bool, error) {
+// todo dont check hash when local file is new
+func IsHashEqual(file, compareHash string, hash hash.Hash) (bool, error) {
 	if _, err := os.Stat(file); err != nil {
 		return false, err
 	}
@@ -47,10 +49,10 @@ func IsHashEqual(file, compareHash string) (bool, error) {
 		err = f.Close()
 	}()
 
-	hash := sha256.New()
 	if _, err = io.Copy(hash, f); err != nil {
 		return false, err
 	}
 
+	log.V(0).Println(hex.EncodeToString(hash.Sum(nil)), compareHash)
 	return hex.EncodeToString(hash.Sum(nil)) == compareHash, err
 }

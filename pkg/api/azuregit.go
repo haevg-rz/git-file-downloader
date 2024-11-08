@@ -1,7 +1,16 @@
 package api
 
+import (
+	"hash"
+)
+
 type AzureGitApi struct {
 	Base *Config
+}
+
+func (a AzureGitApi) GetHash() hash.Hash {
+	//TODO implement me
+	panic("implement me")
 }
 
 var _ IGitApi = &AzureGitApi{}
