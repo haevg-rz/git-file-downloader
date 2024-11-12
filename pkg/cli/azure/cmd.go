@@ -1,9 +1,9 @@
-package gitlab
+package azure
 
 import (
 	"fmt"
 	"github.com/haevg-rz/git-file-downloader/pkg/api"
-	"github.com/haevg-rz/git-file-downloader/pkg/cli/gitlab/options"
+	"github.com/haevg-rz/git-file-downloader/pkg/cli/azure/options"
 	globalOptions "github.com/haevg-rz/git-file-downloader/pkg/cli/options"
 	"github.com/haevg-rz/git-file-downloader/pkg/cli/validate"
 	"github.com/haevg-rz/git-file-downloader/pkg/exit"
@@ -14,16 +14,20 @@ import (
 )
 
 const (
-	FlagProjectId = "project"
-	Endpoint      = "https://gitlab.com/api/v4"
+	FlagOrganization = "organization"
+	FlagProject      = "project"
+	FlagRepo         = "repo"
+	Endpoint         = "https://dev.azure.com"
 )
 
 var rootCmd *cobra.Command = &cobra.Command{
-	Use:   "gitlab",
-	Short: "retrieves data from gitlab",
+	Use:   "azure",
+	Short: "retrieves data from azure dev ops",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		err := validate.Flags(map[string]interface{}{
-			FlagProjectId: options.Current.ProjectId,
+			FlagOrganization: options.Current.Organization,
+			FlagProject:      options.Current.Project,
+			FlagRepo:         options.Current.Repo,
 		})
 		if err != nil {
 			exit.Code = exit.MissingFlags
@@ -32,11 +36,15 @@ var rootCmd *cobra.Command = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var gitApi api.IGitApi = api.NewGitLabApi(
+		log.V(1).Println("retrieving files from azure dev ops")
+
+		var gitApi api.IGitApi = api.NewAzureGitApi(
 			globalOptions.Current.Api.Auth,
 			globalOptions.Current.Api.UserAgent,
 			Endpoint,
-			options.Current.ProjectId)
+			options.Current.Organization,
+			options.Current.Project,
+			options.Current.Repo)
 
 		exists, err := api.ValidateBranch(gitApi, globalOptions.Current.Branch)
 		if err != nil {
@@ -75,5 +83,7 @@ func Command() *cobra.Command {
 }
 
 func init() {
-	rootCmd.Flags().IntVar(&options.Current.ProjectId, FlagProjectId, options.Current.ProjectId, "project id")
+	rootCmd.Flags().StringVar(&options.Current.Organization, FlagOrganization, options.Current.Organization, "azure devops organization")
+	rootCmd.Flags().StringVar(&options.Current.Project, FlagProject, options.Current.Project, "azure devops project")
+	rootCmd.Flags().StringVar(&options.Current.Repo, FlagRepo, options.Current.Repo, "azure devops repo-(name/id)")
 }

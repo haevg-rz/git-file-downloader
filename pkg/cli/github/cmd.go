@@ -22,7 +22,7 @@ const (
 
 var rootCmd *cobra.Command = &cobra.Command{
 	Use:   "github",
-	Short: "github",
+	Short: "retrieves data from github",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		err := validate.Flags(map[string]interface{}{
 			FlagOwner: options.Current.Owner,

@@ -137,8 +137,7 @@ func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, incl
 		}
 
 		if file.Type == "tree" || file.Type == "dir" {
-			updated, err = g.HandleFolder(path.Join(outFolder, file.Name), file.Path, branch, include, exclude)
-			if err != nil {
+			if updated, err = g.HandleFolder(path.Join(outFolder, file.Name), file.Path, branch, include, exclude); err != nil {
 				return updated, err
 			}
 			continue

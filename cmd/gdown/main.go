@@ -22,6 +22,5 @@ func main() {
 		log.V(1).Printf("exit code: %d, error: %v\n", exit.Code, err)
 		os.Exit(exit.Code)
 	}
-	log.V(1).Println("done")
 	os.Exit(exit.Success)
 }
