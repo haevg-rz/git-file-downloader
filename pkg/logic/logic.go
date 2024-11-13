@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/haevg-rz/git-file-downloader/pkg/api"
+	globalOptions "github.com/haevg-rz/git-file-downloader/pkg/cli/options"
 	"github.com/haevg-rz/git-file-downloader/pkg/exit"
 	"github.com/haevg-rz/git-file-downloader/pkg/log"
 	"os"
@@ -31,22 +32,44 @@ func NewGitFileDownloader(gitApi api.IGitApi) *GitFileDownloader {
 	return &GitFileDownloader{gitApi: gitApi}
 }
 
-func (g *GitFileDownloader) Handle(outPath, remotePath, branch, modeArg string) (bool, error) {
+// todo include exclude
+
+func (g *GitFileDownloader) Handle(outPath, remotePath, branch, modeArg string) error {
+	exists, err := api.ValidateBranch(g.gitApi, globalOptions.Current.Branch)
+	if err != nil {
+		exit.Code = exit.BranchNotFound
+		return err
+	}
+	if !exists {
+		exit.Code = exit.BranchNotFound
+		return fmt.Errorf("branch %s does not exist", globalOptions.Current.Branch)
+	}
+
+	var modified bool
 	switch modeArg {
 	case "file":
-		return g.HandleFile(
+		modified, err = g.HandleFile(
 			outPath,
 			remotePath,
 			branch)
 	case "folder":
-		return g.HandleFolder(
+		modified, err = g.HandleFolder(
 			outPath,
 			remotePath,
 			branch,
 			"",
 			"")
+	default:
+		return fmt.Errorf("unsupported mode")
 	}
-	return false, fmt.Errorf("unsupported mode")
+
+	if !modified {
+		log.V(1).Println("everything is up to date.")
+		return nil
+	}
+
+	log.V(1).Println("synced file(s) successfully")
+	return nil
 }
 
 func (g *GitFileDownloader) HandleFile(outFile, repoFilePath, branch string) (bool, error) {
@@ -62,30 +85,29 @@ func (g *GitFileDownloader) HandleFile(outFile, repoFilePath, branch string) (bo
 		return false, fmt.Errorf("API Call exit: %v", err)
 	}
 
-	fileExists := FileExists(outFile)
-	if !fileExists {
+	if !FileExists(outFile) {
 		_, err = os.Create(outFile)
 		if err != nil {
 			exit.Code = exit.FailedToCreateFile
 			return false, fmt.Errorf("CreateFile: '%v'", err)
 		}
 		log.V(2).Printf("Created File: '%s' because it didn't exist\n", outFile)
+	} else {
+		isEqual, err := IsHashEqual(outFile, gitFile.Sha, g.gitApi.GetHash())
+		if err != nil {
+			exit.Code = exit.FailedToOpenFile
+			return false, fmt.Errorf("IsHashEqual: %v", err)
+		}
+
+		if isEqual {
+			return false, nil
+		}
 	}
 
 	fileData, err := base64.StdEncoding.DecodeString(gitFile.Content)
 	if err != nil {
 		exit.Code = exit.FailedToDecodeRemoteFileContent
 		return false, fmt.Errorf("DecodeString: %v", err)
-	}
-
-	isEqual, err := IsHashEqual(outFile, gitFile.Sha, g.gitApi.GetHash())
-	if err != nil {
-		exit.Code = exit.FailedToOpenFile
-		return false, fmt.Errorf("IsHashEqual: %v", err)
-	}
-
-	if isEqual {
-		return false, nil
 	}
 
 	err = os.WriteFile(outFile, fileData, 0644)

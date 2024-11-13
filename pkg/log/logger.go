@@ -1,6 +1,8 @@
 package log
 
-import "log"
+import (
+	"log"
+)
 
 var (
 
@@ -16,7 +18,7 @@ var (
 	Level = 0
 
 	// Shared logger instance used throughout the project. Acts dependent on the global log level.
-	logger = &Logger{}
+	logger = NewLogger()
 )
 
 type ILogger interface {
@@ -29,7 +31,7 @@ type Logger struct {
 }
 
 func NewLogger() *Logger {
-	return &Logger{}
+	return &Logger{level: 0}
 }
 
 func V(level int) *Logger {

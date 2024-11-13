@@ -1,7 +1,7 @@
 package api
 
 import (
-	"crypto/sha256"
+	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -65,7 +65,7 @@ func NewAzureGitApi(auth, userAgent, url, organization, project, repo string) *A
 }
 
 func (a *AzureGitApi) GetHash() hash.Hash {
-	return sha256.New()
+	return sha1.New()
 }
 
 func (a *AzureGitApi) GetAvailableBranches() ([]string, error) {
@@ -139,14 +139,10 @@ func (a *AzureGitApi) GetFilesFromFolder(folderPath, branch string) ([]GitRepoNo
 		folderPath,
 		url.PathEscape(branch))
 
-	fmt.Println(fullUrl)
-
 	body, err := HttpGetFunc(fullUrl, a.Base.defaultHeader)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(string(body))
 
 	err = json.Unmarshal(body, &azureNodes)
 	if err != nil {

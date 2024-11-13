@@ -7,6 +7,7 @@ type Options struct {
 	IncludePattern string
 	ExcludePattern string
 	LogLevel       int
+	LogToFile      bool
 	Api            *ApiOptions
 }
 
@@ -27,6 +28,7 @@ var Current *Options = &Options{
 	IncludePattern: "",
 	ExcludePattern: "",
 	LogLevel:       3,
+	LogToFile:      false,
 	Api: &ApiOptions{
 		UserAgent: "Go-http-client/1.1",
 		Auth:      "",

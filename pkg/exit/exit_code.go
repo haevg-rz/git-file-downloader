@@ -8,6 +8,12 @@ const (
 	Success = iota
 
 	/*
+		InternalError:
+		Unexpected internal error. Please contact maintainer for help.
+	*/
+	InternalError
+
+	/*
 		ReceivedSignal:
 		Signifies that the program received a signal while operating. for example: "^C"
 	*/

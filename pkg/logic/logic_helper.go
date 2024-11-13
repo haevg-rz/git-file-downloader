@@ -33,7 +33,6 @@ func IsValidPath(path string) bool {
 	return !os.IsNotExist(err)
 }
 
-// todo dont check hash when local file is new
 func IsHashEqual(file, compareHash string, hash hash.Hash) (bool, error) {
 	if _, err := os.Stat(file); err != nil {
 		return false, err
