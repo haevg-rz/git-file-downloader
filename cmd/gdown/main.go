@@ -9,6 +9,12 @@ import (
 	"syscall"
 )
 
+func gracefulExit() {
+	cli.Done <- true
+	cli.LogGracefulShutdown.Wait()
+	os.Exit(exit.Code)
+}
+
 func main() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
@@ -16,9 +22,7 @@ func main() {
 	go func() {
 		log.V(1).Printf("exit code: %d, error: received signal '%v'", exit.ReceivedSignal, <-sig)
 		exit.Code = exit.ReceivedSignal
-		cli.Done <- true
-		cli.LogGracefulShutdown.Wait()
-		os.Exit(exit.Code)
+		gracefulExit()
 	}()
 
 	if err := cli.Command().Execute(); err != nil {
@@ -27,8 +31,5 @@ func main() {
 		log.V(1).Printf("exit code: %d\n", exit.Code)
 	}
 
-	cli.Done <- true
-	cli.LogGracefulShutdown.Wait()
-
-	os.Exit(exit.Code)
+	gracefulExit()
 }

@@ -111,7 +111,7 @@ func initFileLog() error {
 
 	LogGracefulShutdown.Add(1)
 	go func() {
-		log.V(3).Printf("logging to file %s\n", logFile.Name())
+		log.V(3).Printf("logging to file %s with v=%d\n", logFile.Name(), options.Current.LogLevel)
 		<-Done
 		log.V(3).Printf("closing writer on logfile %s\n", logFile.Name())
 

@@ -55,7 +55,7 @@ func NewGitLabApi(privateToken, userAgent, apiBaseUrl string, projectNumber int)
 
 // GetRemoteFile retrieves remote file from a given path and branch
 func (g *GitLabApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
-	var gitLabFile *GitRepoFile
+	var gitLabFile *GitLabRepoFile
 
 	branch = url.PathEscape(branch)
 	path = url.PathEscape(path)
@@ -78,7 +78,7 @@ func (g *GitLabApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
 
 	return &GitRepoFile{
 		Name:    gitLabFile.Name,
-		Sha:     gitLabFile.Sha,
+		Sha:     gitLabFile.Sha256,
 		Content: gitLabFile.Content,
 	}, nil
 }

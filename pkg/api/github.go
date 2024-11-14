@@ -2,6 +2,8 @@ package api
 
 import (
 	"crypto/sha1"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"hash"
@@ -22,9 +24,11 @@ type GitHubRepoNode struct {
 	Path string `json:"path"`
 }
 
+// We ignore the given hash and calculate our own using the base64-decoded file content. It is what it is.
+
 type GitHubRepoFile struct {
 	Name    string `json:"name"`
-	Sha     string `json:"sha"`
+	Sha     string `json:"omitempty"`
 	Content string `json:"content"`
 }
 
@@ -102,9 +106,19 @@ func (g *GitHubApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
 		return nil, err
 	}
 
+	decodedContent, err := base64.StdEncoding.DecodeString(githubFile.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	h := g.GetHash()
+	if _, err = h.Write(decodedContent); err != nil {
+		return nil, err
+	}
+
 	return &GitRepoFile{
 		Name:    githubFile.Name,
-		Sha:     githubFile.Sha,
+		Sha:     hex.EncodeToString(h.Sum(nil)),
 		Content: githubFile.Content,
 	}, nil
 }
