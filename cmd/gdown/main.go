@@ -15,12 +15,20 @@ func main() {
 
 	go func() {
 		log.V(1).Printf("exit code: %d, error: received signal '%v'", exit.ReceivedSignal, <-sig)
-		os.Exit(exit.ReceivedSignal)
+		exit.Code = exit.ReceivedSignal
+		cli.Done <- true
+		cli.LogGracefulShutdown.Wait()
+		os.Exit(exit.Code)
 	}()
 
 	if err := cli.Command().Execute(); err != nil {
 		log.V(1).Printf("exit code: %d, error: %v\n", exit.Code, err)
-		os.Exit(exit.Code)
+	} else {
+		log.V(1).Printf("exit code: %d\n", exit.Code)
 	}
-	os.Exit(exit.Success)
+
+	cli.Done <- true
+	cli.LogGracefulShutdown.Wait()
+
+	os.Exit(exit.Code)
 }

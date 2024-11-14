@@ -115,7 +115,7 @@ func (a *AzureGitApi) GetRemoteFile(filePath, branch string) (*GitRepoFile, erro
 	contentEncoded := base64.StdEncoding.EncodeToString(body)
 
 	h := a.GetHash()
-	if _, err = h.Write([]byte(contentEncoded)); err != nil {
+	if _, err = h.Write(body); err != nil {
 		return nil, err
 	}
 

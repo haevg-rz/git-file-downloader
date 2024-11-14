@@ -13,13 +13,20 @@ import (
 	"github.com/spf13/cobra"
 	goLog "log"
 	"os"
+	"sync"
 	"time"
+)
+
+var (
+	Done                = make(chan bool, 1)
+	LogGracefulShutdown sync.WaitGroup
 )
 
 const (
 	LogOutputPath = "./logs"
-	LogFileFormat = "YYYY-MM-DD-HH-MM-SS"
-	// SOURCE, DEST
+	LogFileFormat = "2006-01-02-15-04-05"
+
+	// FLAGS
 
 	FlagOutPath    = "out"
 	FlagRemotePath = "remote-path"
@@ -27,9 +34,9 @@ const (
 	FlagBranch         = "branch"
 	FlagIncludePattern = "include"
 	FlagExcludePattern = "exclude"
-	FlagLogLevel       = "log-level"
 
-	// API
+	FlagLogLevelShort = "v"
+	FlagLogLevel      = "verbosity"
 
 	FlagAuthToken = "token"
 	FlagUrl       = "url"
@@ -45,7 +52,7 @@ var rootCmd *cobra.Command = &cobra.Command{
 		log.Level = options.Current.LogLevel
 
 		if options.Current.LogToFile {
-			if err := initLog(); err != nil {
+			if err := initFileLog(); err != nil {
 				return err
 			}
 		}
@@ -75,7 +82,7 @@ func Command() *cobra.Command {
 	return rootCmd
 }
 
-func initLog() error {
+func initFileLog() error {
 	var err error
 
 	defer func() {
@@ -84,24 +91,37 @@ func initLog() error {
 		}
 	}()
 
-	fileInfo, err := os.Stat(LogOutputPath)
-	if err != nil {
-		return err
+	if _, err = os.Stat(LogOutputPath); err != nil {
+		if os.IsNotExist(err) {
+			err = os.Mkdir(LogOutputPath, os.ModePerm)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
 	}
 
-	if fileInfo.IsDir() == false {
-		exit.Code = exit.InternalError
-		err = fmt.Errorf("%s is not a directory", LogOutputPath)
-		return err
-	}
-
-	logFile, err := os.Open(fmt.Sprintf("%s/%s-log.txt", LogOutputPath, time.Now().Format(LogFileFormat)))
+	logFile, err := os.OpenFile(fmt.Sprintf("%s/%s-log.txt", LogOutputPath, time.Now().Format(LogFileFormat)), os.O_CREATE, 0644)
 	if err != nil {
-		exit.Code = exit.InternalError
 		return err
 	}
 
 	goLog.SetOutput(logFile)
+
+	LogGracefulShutdown.Add(1)
+	go func() {
+		log.V(3).Printf("logging to file %s\n", logFile.Name())
+		<-Done
+		log.V(3).Printf("closing writer on logfile %s\n", logFile.Name())
+
+		err = logFile.Close()
+		if err != nil {
+			exit.Code = exit.InternalError
+		}
+		LogGracefulShutdown.Done()
+	}()
+
 	return nil
 }
 
@@ -113,7 +133,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&options.Current.Branch, FlagBranch, options.Current.Branch, "Branch name")
 	rootCmd.PersistentFlags().StringVar(&options.Current.IncludePattern, FlagIncludePattern, options.Current.IncludePattern, "Include this regex pattern")
 	rootCmd.PersistentFlags().StringVar(&options.Current.ExcludePattern, FlagExcludePattern, options.Current.ExcludePattern, "Exclude this regex pattern")
-	rootCmd.PersistentFlags().IntVar(&options.Current.LogLevel, FlagLogLevel, options.Current.LogLevel, "Higher loglevel leads to more verbose logging. Set log level to 0 if you dont want any logging.")
+	rootCmd.PersistentFlags().IntVarP(&options.Current.LogLevel, FlagLogLevel, FlagLogLevelShort, options.Current.LogLevel, "Set verbosity level (0-3)")
 	rootCmd.PersistentFlags().BoolVar(&options.Current.LogToFile, FlagLogToFile, options.Current.LogToFile, "Write to file instead of stdout")
 
 	// api flag def
