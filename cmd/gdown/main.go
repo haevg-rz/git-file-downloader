@@ -11,7 +11,6 @@ import (
 
 func gracefulExit() {
 	cli.Done <- true
-	cli.LogGracefulShutdown.Wait()
 	os.Exit(exit.Code)
 }
 

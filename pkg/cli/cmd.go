@@ -8,23 +8,16 @@ import (
 	"github.com/haevg-rz/git-file-downloader/pkg/cli/options"
 	"github.com/haevg-rz/git-file-downloader/pkg/cli/validate"
 	"github.com/haevg-rz/git-file-downloader/pkg/cli/version"
-	"github.com/haevg-rz/git-file-downloader/pkg/exit"
 	"github.com/haevg-rz/git-file-downloader/pkg/log"
 	"github.com/spf13/cobra"
-	goLog "log"
-	"os"
-	"sync"
-	"time"
 )
 
 var (
-	Done                = make(chan bool, 1)
-	LogGracefulShutdown sync.WaitGroup
+	Done = make(chan bool, 1)
 )
 
 const (
 	LogOutputPath = "./logs"
-	LogFileFormat = "2006-01-02-15-04-05"
 
 	// FLAGS
 
@@ -52,7 +45,7 @@ var rootCmd *cobra.Command = &cobra.Command{
 		log.Level = options.Current.LogLevel
 
 		if options.Current.LogToFile {
-			if err := initFileLog(); err != nil {
+			if err := log.InitFileLog(LogOutputPath, options.Current.LogLevel, Done); err != nil {
 				return err
 			}
 		}
@@ -80,49 +73,6 @@ func Command() *cobra.Command {
 	rootCmd.AddCommand(gitlab.Command())
 	rootCmd.AddCommand(azure.Command())
 	return rootCmd
-}
-
-func initFileLog() error {
-	var err error
-
-	defer func() {
-		if err != nil {
-			exit.Code = exit.InternalError
-		}
-	}()
-
-	if _, err = os.Stat(LogOutputPath); err != nil {
-		if os.IsNotExist(err) {
-			err = os.Mkdir(LogOutputPath, os.ModePerm)
-			if err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	}
-
-	logFile, err := os.OpenFile(fmt.Sprintf("%s/%s-log.txt", LogOutputPath, time.Now().Format(LogFileFormat)), os.O_CREATE, 0644)
-	if err != nil {
-		return err
-	}
-
-	goLog.SetOutput(logFile)
-
-	LogGracefulShutdown.Add(1)
-	go func() {
-		log.V(3).Printf("logging to file %s with v=%d\n", logFile.Name(), options.Current.LogLevel)
-		<-Done
-		log.V(3).Printf("closing writer on logfile %s\n", logFile.Name())
-
-		err = logFile.Close()
-		if err != nil {
-			exit.Code = exit.InternalError
-		}
-		LogGracefulShutdown.Done()
-	}()
-
-	return nil
 }
 
 func init() {
