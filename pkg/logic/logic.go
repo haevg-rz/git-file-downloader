@@ -18,14 +18,26 @@ type IGitFileDownloader interface {
 	Handle(string, string, string, string) (bool, error)
 }
 
+type RegexRules struct {
+	Include, Exclude string
+}
+
 type Context struct {
 	OutPath    string
 	RemotePath string
 	Branch     string
+	Patterns   *RegexRules
 }
 
 type GitFileDownloader struct {
 	gitApi api.IGitApi
+}
+
+func NewRegexRules() *RegexRules {
+	return &RegexRules{
+		Include: "*",
+		Exclude: "",
+	}
 }
 
 func NewGitFileDownloader(gitApi api.IGitApi) *GitFileDownloader {
@@ -34,7 +46,11 @@ func NewGitFileDownloader(gitApi api.IGitApi) *GitFileDownloader {
 
 // todo include exclude
 
-func (g *GitFileDownloader) Handle(outPath, remotePath, branch, modeArg string) error {
+func (g *GitFileDownloader) Handle(ctx *Context, modeArg string) error {
+	if ctx.Patterns == nil {
+		ctx.Patterns = NewRegexRules()
+	}
+
 	exists, err := api.ValidateBranch(g.gitApi, globalOptions.Current.Branch)
 	if err != nil {
 		exit.Code = exit.BranchNotFound
@@ -49,16 +65,16 @@ func (g *GitFileDownloader) Handle(outPath, remotePath, branch, modeArg string) 
 	switch modeArg {
 	case "file":
 		modified, err = g.HandleFile(
-			outPath,
-			remotePath,
-			branch)
+			ctx.OutPath,
+			ctx.RemotePath,
+			ctx.Branch)
 	case "folder":
 		modified, err = g.HandleFolder(
-			outPath,
-			remotePath,
-			branch,
-			"",
-			"")
+			ctx.OutPath,
+			ctx.RemotePath,
+			ctx.Branch,
+			ctx.Patterns.Include,
+			ctx.Patterns.Exclude)
 	default:
 		return fmt.Errorf("unsupported mode")
 	}
@@ -139,6 +155,13 @@ func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, incl
 	log.V(2).Println("Sync", len(files), "files, from remote folder", repoFolderPath)
 
 	for _, file := range files {
+		if file.Type == "tree" || file.Type == "dir" {
+			if updated, err = g.HandleFolder(path.Join(outFolder, file.Name), file.Path, branch, include, exclude); err != nil {
+				return updated, err
+			}
+			continue
+		}
+
 		if include != "" {
 			matched, err := regexp.MatchString(include, file.Name)
 			if err == nil {
@@ -148,6 +171,7 @@ func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, incl
 				}
 			}
 		}
+
 		if exclude != "" {
 			matched, err := regexp.MatchString(exclude, file.Name)
 			if err == nil {
@@ -156,13 +180,6 @@ func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, incl
 					continue
 				}
 			}
-		}
-
-		if file.Type == "tree" || file.Type == "dir" {
-			if updated, err = g.HandleFolder(path.Join(outFolder, file.Name), file.Path, branch, include, exclude); err != nil {
-				return updated, err
-			}
-			continue
 		}
 
 		modifiedOrCreated, err := g.HandleFile(path.Join(outFolder, path.Base(file.Path)), file.Path, branch)

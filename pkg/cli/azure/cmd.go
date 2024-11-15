@@ -40,11 +40,15 @@ var rootCmd *cobra.Command = &cobra.Command{
 			options.Current.Project,
 			options.Current.Repo)
 
-		return logic.NewGitFileDownloader(gitApi).Handle(
-			globalOptions.Current.OutPath,
-			globalOptions.Current.RemotePath,
-			globalOptions.Current.Branch,
-			strings.ToLower(args[0]))
+		return logic.NewGitFileDownloader(gitApi).Handle(&logic.Context{
+			OutPath:    globalOptions.Current.OutPath,
+			RemotePath: globalOptions.Current.RemotePath,
+			Branch:     globalOptions.Current.Branch,
+			Patterns: &logic.RegexRules{
+				Include: globalOptions.Current.IncludePattern,
+				Exclude: globalOptions.Current.ExcludePattern,
+			},
+		}, strings.ToLower(args[0]))
 	},
 }
 
