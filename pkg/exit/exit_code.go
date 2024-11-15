@@ -38,10 +38,10 @@ const (
 	UnknownGitProvider
 
 	/*
-		BranchNotFound:
+		BranchOrRepoNotFound:
 		Could not find remote branch
 	*/
-	BranchNotFound
+	BranchOrRepoNotFound
 
 	/*
 		FailedToCreateFile:

@@ -53,11 +53,11 @@ func (g *GitFileDownloader) Handle(ctx *Context, modeArg string) error {
 
 	exists, err := api.ValidateBranch(g.gitApi, globalOptions.Current.Branch)
 	if err != nil {
-		exit.Code = exit.BranchNotFound
+		exit.Code = exit.BranchOrRepoNotFound
 		return err
 	}
 	if !exists {
-		exit.Code = exit.BranchNotFound
+		exit.Code = exit.BranchOrRepoNotFound
 		return fmt.Errorf("branch %s does not exist", globalOptions.Current.Branch)
 	}
 
