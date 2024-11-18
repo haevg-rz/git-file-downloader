@@ -1,8 +1,8 @@
 package logic
 
 import (
-	"crypto/sha256"
 	"encoding/hex"
+	"hash"
 	"io"
 	"os"
 	"path/filepath"
@@ -25,6 +25,14 @@ func FileExists(file string) bool {
 	return !fileInfo.IsDir()
 }
 
+func DirExists(dir string) bool {
+	fileInfo, err := os.Stat(dir)
+	if err != nil {
+		return false
+	}
+	return fileInfo.IsDir()
+}
+
 func IsValidPath(path string) bool {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -33,7 +41,7 @@ func IsValidPath(path string) bool {
 	return !os.IsNotExist(err)
 }
 
-func IsHashEqual(file, compareHash string) (bool, error) {
+func IsHashEqual(file, compareHash string, hash hash.Hash) (bool, error) {
 	if _, err := os.Stat(file); err != nil {
 		return false, err
 	}
@@ -47,7 +55,6 @@ func IsHashEqual(file, compareHash string) (bool, error) {
 		err = f.Close()
 	}()
 
-	hash := sha256.New()
 	if _, err = io.Copy(hash, f); err != nil {
 		return false, err
 	}

@@ -8,6 +8,18 @@ const (
 	Success = iota
 
 	/*
+		InternalError:
+		Unexpected internal error. Please contact maintainer for help.
+	*/
+	InternalError
+
+	/*
+		ReceivedSignal:
+		Signifies that the program received a signal while operating. for example: "^C"
+	*/
+	ReceivedSignal
+
+	/*
 		MissingFlags:
 		One or more mandatory flags are missing
 	*/
@@ -20,10 +32,16 @@ const (
 	InvalidOutPath
 
 	/*
-		BranchNotFound:
+		UnknownGitProvider
+		Specified git provider is unknown. Valid options are: GITHUB, GITLAB, AZURE
+	*/
+	UnknownGitProvider
+
+	/*
+		BranchOrRepoNotFound:
 		Could not find remote branch
 	*/
-	BranchNotFound
+	BranchOrRepoNotFound
 
 	/*
 		FailedToCreateFile:
@@ -59,7 +77,7 @@ const (
 
 	/*
 		FailedToRetrieveRemoteFile:
-		Failed to get file from remote repository
+		Failed to get file from remote repository. Can happen due to faulty remote path.
 	*/
 	FailedToRetrieveRemoteFile
 

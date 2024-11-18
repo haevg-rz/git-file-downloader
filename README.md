@@ -41,12 +41,14 @@ Usage of gdown.exe:
 
 ## Use Case
 
-### Download file from your gitlab repository
+### Download files from your gitlab repository
 
-You want to have the benefits from git to manage your config files.
-With this (windows and linux) tool you can now download theses config files from an on-promise GitLab instance and save them to disk.
+You want to have the benefits from git to manage your config files, but don't want git installed on your system?
+With this (windows and linux) tool you can now download these config files from an on-promise instance of your choice (GitHub, AzureGit, GitLab) and save them to your disk.
 
-The file will be **only** replaced if the hash is different (from disk to git).
+You can download folders/files from different repositories and providers, and save them in the output path of your choice.
+
+The file will **only** be replaced if the hash is different (from disk to git).
 
 **Working example!**
 

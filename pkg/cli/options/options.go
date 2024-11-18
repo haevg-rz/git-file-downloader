@@ -2,18 +2,19 @@ package options
 
 type Options struct {
 	OutPath        string
+	RemotePath     string
 	Branch         string
 	IncludePattern string
 	ExcludePattern string
 	LogLevel       int
+	LogToFile      bool
 	Api            *ApiOptions
 }
 
 type ApiOptions struct {
-	UserAgent     string
-	PrivateToken  string
-	ApiBaseUrl    string
-	ProjectNumber int
+	UserAgent string
+	Auth      string
+	BaseUrl   string
 }
 
 func NewOptions() *Options {
@@ -22,14 +23,14 @@ func NewOptions() *Options {
 
 var Current *Options = &Options{
 	OutPath:        "",
+	RemotePath:     "",
 	Branch:         "main",
 	IncludePattern: "",
 	ExcludePattern: "",
-	LogLevel:       1,
+	LogLevel:       3,
+	LogToFile:      false,
 	Api: &ApiOptions{
-		UserAgent:     "Go-http-client/1.1",
-		PrivateToken:  "",
-		ApiBaseUrl:    "https://gitlab.com/api/v4/",
-		ProjectNumber: -1,
+		UserAgent: "Go-http-client/1.1",
+		Auth:      "",
 	},
 }
