@@ -101,7 +101,7 @@ If you choose to download a folder, be aware that gdown will recursively downloa
 **Working example!**
 
 ```bat
-.\gdown.exe gitlab folder --token glpat-cLoytjHzi2nCyJapcZfh --out ./clone-gitlab --remote-path / --project 64241402
+.\gdown.exe gitlab folder --token AZURE_PAT --out ./clone-gitlab --remote-path / --project 64241402
 ```
 
 ```log
@@ -131,7 +131,7 @@ If you choose to download a folder, be aware that gdown will recursively downloa
 See https://gitlab.com/mdriessen/downloader-test for local testing.
 
 ```bat
-.\gdown.exe gitlab file --token glpat-cLoytjHzi2nCyJapcZfh --out ./greetings.txt --remote-path config/greetings.txt --project 64241402
+.\gdown.exe gitlab file --token AZURE_PAT --out ./greetings.txt --remote-path config/greetings.txt --project 64241402
 ```
 
 ```log
