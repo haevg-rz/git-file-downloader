@@ -3,25 +3,30 @@ package logic
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
+	"path"
+	"regexp"
+
 	"github.com/haevg-rz/git-file-downloader/pkg/api"
 	globalOptions "github.com/haevg-rz/git-file-downloader/pkg/cli/options"
 	"github.com/haevg-rz/git-file-downloader/pkg/exit"
 	"github.com/haevg-rz/git-file-downloader/pkg/log"
-	"os"
-	"path"
-	"regexp"
 )
 
-type IGitFileDownloader interface {
+// GitFileDownloader describes the behaviour to download individual files/folders.
+// Handle calls HandleFile or HandleFolder depending on the given mode.
+type GitFileDownloader interface {
 	HandleFile(string, string, string) (bool, error)
 	HandleFolder(string, string, string, string, string) (bool, error)
 	Handle(string, string, string, string) (bool, error)
 }
 
+// RegexRules defines the include and exclude regex patterns
 type RegexRules struct {
 	Include, Exclude string
 }
 
+// Context defines the information needed to download data from a gitApi.
 type Context struct {
 	OutPath    string
 	RemotePath string
@@ -29,10 +34,12 @@ type Context struct {
 	Patterns   *RegexRules
 }
 
-type GitFileDownloader struct {
-	gitApi api.IGitApi
+// GitFileDownloaderHandler specific implementation of GitFileDownloader. Contains a reference to the specific gitApi.
+type GitFileDownloaderHandler struct {
+	gitApi api.GitApi
 }
 
+// NewRegexRules creates a new instance of RegexRules with default values.
 func NewRegexRules() *RegexRules {
 	return &RegexRules{
 		Include: "*",
@@ -40,13 +47,13 @@ func NewRegexRules() *RegexRules {
 	}
 }
 
-func NewGitFileDownloader(gitApi api.IGitApi) *GitFileDownloader {
-	return &GitFileDownloader{gitApi: gitApi}
+// NewGitFileDownloader creates a new downloader instance with the given gitApi.
+func NewGitFileDownloader(gitApi api.GitApi) *GitFileDownloaderHandler {
+	return &GitFileDownloaderHandler{gitApi: gitApi}
 }
 
-// todo include exclude
-
-func (g *GitFileDownloader) Handle(ctx *Context, modeArg string) error {
+// Handle calles either HandleFile or HandleFolder depending on the given mode (file/folder as of now).
+func (g *GitFileDownloaderHandler) Handle(ctx *Context, modeArg string) error {
 	if ctx.Patterns == nil {
 		ctx.Patterns = NewRegexRules()
 	}
@@ -88,7 +95,8 @@ func (g *GitFileDownloader) Handle(ctx *Context, modeArg string) error {
 	return nil
 }
 
-func (g *GitFileDownloader) HandleFile(outFile, repoFilePath, branch string) (bool, error) {
+// HandleFile downloads an individual file from a remote git-repo.
+func (g *GitFileDownloaderHandler) HandleFile(outFile, repoFilePath, branch string) (bool, error) {
 	validPath, dir := GetDirFromFilepath(outFile)
 	if !validPath {
 		exit.Code = exit.InvalidOutPath
@@ -134,7 +142,8 @@ func (g *GitFileDownloader) HandleFile(outFile, repoFilePath, branch string) (bo
 	return true, nil
 }
 
-func (g *GitFileDownloader) HandleFolder(outFolder, repoFolderPath, branch, include, exclude string) (bool, error) {
+// HandleFolder downloads a folder *recursively* from a remote git-repo. Calls HandleFile internally.
+func (g *GitFileDownloaderHandler) HandleFolder(outFolder, repoFolderPath, branch, include, exclude string) (bool, error) {
 	updated := false
 
 	if !IsValidPath(outFolder) {

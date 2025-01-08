@@ -22,7 +22,3 @@ var rootCmd *cobra.Command = &cobra.Command{
 func Command() *cobra.Command {
 	return rootCmd
 }
-
-func init() {
-	// flag provider
-}

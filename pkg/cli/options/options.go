@@ -30,7 +30,8 @@ var Current *Options = &Options{
 	LogLevel:       3,
 	LogToFile:      false,
 	Api: &ApiOptions{
-		UserAgent: "Go-http-client/1.1",
+		UserAgent: "Go-git-downloader/1.0",
 		Auth:      "",
+		BaseUrl:   "",
 	},
 }

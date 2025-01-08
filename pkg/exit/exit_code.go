@@ -1,11 +1,13 @@
 package exit
 
+type ExitCode int
+
 const (
 	/*
 		Success:
 		Everything went according to plan
 	*/
-	Success = iota
+	Success ExitCode = iota
 
 	/*
 		InternalError:
@@ -91,3 +93,7 @@ const (
 var (
 	Code = Success
 )
+
+func (code ExitCode) Int() int {
+	return int(code)
+}

@@ -34,6 +34,7 @@ const (
 	FlagAuthToken = "token"
 	FlagUrl       = "url"
 	FlagUserAgent = "user-agent"
+
 	FlagLogToFile = "logfile"
 )
 

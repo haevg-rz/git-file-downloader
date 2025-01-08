@@ -1,29 +1,31 @@
 package main
 
 import (
-	"github.com/haevg-rz/git-file-downloader/pkg/cli"
-	"github.com/haevg-rz/git-file-downloader/pkg/exit"
-	"github.com/haevg-rz/git-file-downloader/pkg/log"
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/haevg-rz/git-file-downloader/pkg/cli"
+	"github.com/haevg-rz/git-file-downloader/pkg/exit"
+	"github.com/haevg-rz/git-file-downloader/pkg/log"
 )
 
 func gracefulExit() {
 	cli.Done <- true
-	log.GracefulShutdown.Wait()
-	os.Exit(exit.Code)
+	log.FileLogWg.Wait()
+	os.Exit(exit.Code.Int())
 }
 
 func main() {
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	sigCtx, _ := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 
-	go func() {
-		log.V(1).Printf("exit code: %d, error: received signal '%v'", exit.ReceivedSignal, <-sig)
+	go func(ctx context.Context) {
+		<-ctx.Done()
+		log.V(1).Printf("exit code: %d, error: received signal interrupt", exit.ReceivedSignal)
 		exit.Code = exit.ReceivedSignal
 		gracefulExit()
-	}()
+	}(sigCtx)
 
 	if err := cli.Command().Execute(); err != nil {
 		log.V(1).Printf("exit code: %d, error: %v\n", exit.Code, err)

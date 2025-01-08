@@ -10,14 +10,20 @@ import (
 	"net/url"
 )
 
+// GitHubApi is a specific implementation of GitApi. Defines owner and repoName for remote repository.
 type GitHubApi struct {
 	base  *SharedConfig
 	owner string
 	repo  string
 }
 
-// GitHub type defs
+// GitHubConfig defines all fields needed for the api.
+type GitHubConfig struct {
+	Owner string
+	Repo  string
+}
 
+// GitHubRepoNode defines a node returned from the githubApi.
 type GitHubRepoNode struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
@@ -26,6 +32,7 @@ type GitHubRepoNode struct {
 
 // We ignore the given hash and calculate our own using the base64-decoded file content. It is what it is.
 
+// GitHubRepoFile defines a file returned by the githubApi.
 type GitHubRepoFile struct {
 	Name    string `json:"name"`
 	Sha     string `json:"omitempty"`
@@ -38,28 +45,33 @@ const (
 	githubBranchTemplate = "%s/repos/%s/%s/branches"
 )
 
-var _ IGitApi = &GitHubApi{}
+var _ GitApi = &GitHubApi{}
 
-func NewGitHubApi(bearerToken, userAgent, url, owner, repo string) *GitHubApi {
+// todo
+
+// NewGitHubApi creates a new instance of the GitHubApi.
+func NewGitHubApi(baseConfig *BaseConfig, githubConfig *GitHubConfig) *GitHubApi {
 	return &GitHubApi{
 		base: &SharedConfig{
-			url: url,
+			url: baseConfig.Url,
 			defaultHeader: map[string]string{
-				"Authorization":        fmt.Sprintf("Bearer %s", bearerToken),
-				"User-Agent":           userAgent,
+				"Authorization":        fmt.Sprintf("Bearer %s", baseConfig.Auth),
+				"User-Agent":           baseConfig.UserAgent,
 				"X-GitHub-Api-Version": "2022-11-28",
 				"Accept":               "application/vnd.github+json",
 			},
 		},
-		owner: owner,
-		repo:  repo,
+		owner: githubConfig.Owner,
+		repo:  githubConfig.Repo,
 	}
 }
 
+// GetHash returns the hash-method for the githubApi.
 func (g *GitHubApi) GetHash() hash.Hash {
 	return sha1.New()
 }
 
+// GetAvailableBranches returns a list of all available branches from the defined repository.
 func (g *GitHubApi) GetAvailableBranches() ([]string, error) {
 	var branches []GitBranch
 	var branchesStr []string
@@ -86,6 +98,7 @@ func (g *GitHubApi) GetAvailableBranches() ([]string, error) {
 	return branchesStr, nil
 }
 
+// GetRemoteFile returns a GitRepoFile from the given remotePath and branch.
 func (g *GitHubApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
 	var githubFile *GitHubRepoFile
 	fullUrl := fmt.Sprintf(
@@ -123,7 +136,8 @@ func (g *GitHubApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
 	}, nil
 }
 
-func (g *GitHubApi) GetFilesFromFolder(path, branch string) ([]GitRepoNode, error) {
+// GetFilesFromFolder returns a slice of GitRepoNode from a given folderPath and branch.
+func (g *GitHubApi) GetFilesFromFolder(folderPath, branch string) ([]GitRepoNode, error) {
 	gitHubNodes := make([]GitHubRepoNode, 0)
 	gitNodes := make([]GitRepoNode, 0)
 	fullUrl := fmt.Sprintf(
@@ -131,7 +145,7 @@ func (g *GitHubApi) GetFilesFromFolder(path, branch string) ([]GitRepoNode, erro
 		g.base.url,
 		url.PathEscape(g.owner),
 		url.PathEscape(g.repo),
-		path,
+		folderPath,
 		url.PathEscape(branch))
 
 	body, err := HttpGetFunc(fullUrl, g.base.defaultHeader)

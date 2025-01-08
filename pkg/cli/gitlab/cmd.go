@@ -1,13 +1,15 @@
 package gitlab
 
 import (
+	"strings"
+
 	"github.com/haevg-rz/git-file-downloader/pkg/api"
 	"github.com/haevg-rz/git-file-downloader/pkg/cli/gitlab/options"
 	globalOptions "github.com/haevg-rz/git-file-downloader/pkg/cli/options"
 	"github.com/haevg-rz/git-file-downloader/pkg/cli/validate"
 	"github.com/haevg-rz/git-file-downloader/pkg/logic"
+
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 const (
@@ -25,11 +27,15 @@ var rootCmd *cobra.Command = &cobra.Command{
 		})
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var gitApi api.IGitApi = api.NewGitLabApi(
-			globalOptions.Current.Api.Auth,
-			globalOptions.Current.Api.UserAgent,
-			Endpoint,
-			options.Current.ProjectId)
+		var gitApi api.GitApi = api.NewGitLabApi(
+			&api.BaseConfig{
+				Url:       Endpoint,
+				Auth:      globalOptions.Current.Api.Auth,
+				UserAgent: globalOptions.Current.Api.UserAgent,
+			},
+			&api.GitLabConfig{
+				ProjectNumber: options.Current.ProjectId,
+			})
 
 		return logic.NewGitFileDownloader(gitApi).Handle(&logic.Context{
 			OutPath:    globalOptions.Current.OutPath,

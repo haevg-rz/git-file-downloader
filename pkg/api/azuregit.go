@@ -11,27 +11,41 @@ import (
 	"path"
 )
 
+// AzureGitApi defines a specific implementation of GitApi.
 type AzureGitApi struct {
 	Base         *SharedConfig
 	Organization string
 	Project      string
 	Repo         string
+	ApiVersion   string
 }
 
+// AzureGitConfig defines all fields needed for the api.
+type AzureGitConfig struct {
+	ApiVersion   string
+	Organization string
+	Project      string
+	Repo         string
+}
+
+// AzureGitRepoNode defines a single node returned from the azureGitApi.
 type AzureGitRepoNode struct {
 	Name string `json:"omitempty"`
 	Path string `json:"path"`
 	Type string `json:"gitObjectType"`
 }
 
+// AzureGitRepoNodes defines a slice of AzureGitRepoNode returned from the azureGitApi.
 type AzureGitRepoNodes struct {
 	Value []AzureGitRepoNode `json:"value"`
 }
 
+// AzureGitBranch defines an individual branch from a remote azure repository. Is returned from the azureGitApi.
 type AzureGitBranch struct {
 	Name string `json:"name"`
 }
 
+// AzureGitBranches defines the available branches of a remote azure repository. Is returned from the azureGitApi.
 type AzureGitBranches struct {
 	Value []AzureGitBranch `json:"value"`
 }
@@ -39,51 +53,56 @@ type AzureGitBranches struct {
 const (
 	// ENDPOINT, ORGANIZATION, PROJECT, REPO
 
-	azureBranchTemplate = "%s/%s/%s/_apis/git/repositories/%s/refs?api-version=7.1"
+	azureBranchTemplate = "%s/%s/%s/_apis/git/repositories/%s/refs?api-version=%s"
 
-	// i really want to know why the azure dev ops api is so confusing compared to github & gitlab
-	azureItemsTemplate = "%s/%s/%s/_apis/git/repositories/%s/items?scopePath=%s&versionDescriptor.version=%s&api-version=7.1&recursionLevel=oneLevel"
+	// I really want to know why the azure dev ops api is so confusing compared to gitHub & gitlab
+	azureItemsTemplate = "%s/%s/%s/_apis/git/repositories/%s/items?scopePath=%s&versionDescriptor.version=%s&api-version=%s&recursionLevel=oneLevel"
 
-	azureFileTemplate = "%s/%s/%s/_apis/git/repositories/%s/items?scopePath=%s&versionDescriptor.version=%s&api-version=7.1"
+	azureFileTemplate = "%s/%s/%s/_apis/git/repositories/%s/items?scopePath=%s&versionDescriptor.version=%s&api-version=%s"
 )
 
-var _ IGitApi = &AzureGitApi{}
+var _ GitApi = &AzureGitApi{}
 
-func NewAzureGitApi(auth, userAgent, url, organization, project, repo string) *AzureGitApi {
+// NewAzureGitApi creates a new instance of AzureGitApi.
+func NewAzureGitApi(baseConfig *BaseConfig, azureConfig *AzureGitConfig) *AzureGitApi {
 	return &AzureGitApi{
 		Base: &SharedConfig{
-			url: url,
+			url: baseConfig.Url,
 			defaultHeader: map[string]string{
-				"User-Agent":    userAgent,
-				"Authorization": fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(":"+auth))),
+				"User-Agent":    baseConfig.UserAgent,
+				"Authorization": fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(":"+baseConfig.Auth))),
 			},
 		},
-		Organization: organization,
-		Project:      project,
-		Repo:         repo,
+		Organization: azureConfig.Organization,
+		Project:      azureConfig.Project,
+		Repo:         azureConfig.Repo,
+		ApiVersion:   azureConfig.ApiVersion,
 	}
 }
 
+// GetHash returns the hash-method for the azureGitApi.
 func (a *AzureGitApi) GetHash() hash.Hash {
 	return sha1.New()
 }
 
+// GetAvailableBranches returns a list of all available branches from the defined repository.
 func (a *AzureGitApi) GetAvailableBranches() ([]string, error) {
-	var branches *AzureGitBranches
 	var branchesStr []string
+	branches := &AzureGitBranches{}
 	fullUrl := fmt.Sprintf(
 		azureBranchTemplate,
 		a.Base.url,
 		url.PathEscape(a.Organization),
 		url.PathEscape(a.Project),
-		url.PathEscape(a.Repo))
+		url.PathEscape(a.Repo),
+		a.ApiVersion)
 
 	body, err := HttpGetFunc(fullUrl, a.Base.defaultHeader)
 	if err != nil {
 		return nil, err
 	}
 
-	err = json.Unmarshal(body, &branches)
+	err = json.Unmarshal(body, branches)
 	if err != nil {
 		return nil, err
 	}
@@ -96,6 +115,7 @@ func (a *AzureGitApi) GetAvailableBranches() ([]string, error) {
 	return branchesStr, nil
 }
 
+// GetRemoteFile returns a GitRepoFile from the given remotePath and branch.
 func (a *AzureGitApi) GetRemoteFile(filePath, branch string) (*GitRepoFile, error) {
 	fullUrl := fmt.Sprintf(
 		azureFileTemplate,
@@ -104,7 +124,8 @@ func (a *AzureGitApi) GetRemoteFile(filePath, branch string) (*GitRepoFile, erro
 		url.PathEscape(a.Project),
 		url.PathEscape(a.Repo),
 		filePath,
-		branch)
+		branch,
+		a.ApiVersion)
 
 	body, err := HttpGetFunc(fullUrl, a.Base.defaultHeader)
 	if err != nil {
@@ -126,6 +147,7 @@ func (a *AzureGitApi) GetRemoteFile(filePath, branch string) (*GitRepoFile, erro
 	}, nil
 }
 
+// GetFilesFromFolder returns a slice of GitRepoNode from a given folderPath and branch.
 func (a *AzureGitApi) GetFilesFromFolder(folderPath, branch string) ([]GitRepoNode, error) {
 	var gitNodes []GitRepoNode
 	var azureNodes *AzureGitRepoNodes
@@ -137,7 +159,8 @@ func (a *AzureGitApi) GetFilesFromFolder(folderPath, branch string) ([]GitRepoNo
 		url.PathEscape(a.Project),
 		url.PathEscape(a.Repo),
 		folderPath,
-		url.PathEscape(branch))
+		url.PathEscape(branch),
+		a.ApiVersion)
 
 	body, err := HttpGetFunc(fullUrl, a.Base.defaultHeader)
 	if err != nil {
@@ -150,7 +173,7 @@ func (a *AzureGitApi) GetFilesFromFolder(folderPath, branch string) ([]GitRepoNo
 	}
 
 	// set node name manually
-	// i couldn't figure out how to do it with the api. please help.
+	// I couldn't figure out how to do it with the api. please help.
 	_, folderName := path.Split(folderPath)
 	for _, node := range azureNodes.Value {
 		_, file := path.Split(node.Path)

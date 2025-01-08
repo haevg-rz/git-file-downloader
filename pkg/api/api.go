@@ -1,7 +1,6 @@
 package api
 
 import (
-	"crypto/tls"
 	"fmt"
 	"hash"
 	"io"
@@ -13,18 +12,25 @@ var (
 	HttpGetFunc = httpGetInternal
 )
 
-// IGitApi Describes the expected behaviour of the gitLabApi.
-type IGitApi interface {
+// GitApi Describes the expected behaviour of a gitApiHandler.
+type GitApi interface {
 	GetAvailableBranches() ([]string, error)
 	GetRemoteFile(filePath, branch string) (*GitRepoFile, error)
 	GetFilesFromFolder(folderPath, branch string) ([]GitRepoNode, error)
 	GetHash() hash.Hash
 }
 
-// SharedConfig base struct for all implementations of IGitApi.
+// SharedConfig Defines shared fields for all implementations of GitApi.
 type SharedConfig struct {
 	url           string
 	defaultHeader map[string]string
+}
+
+// BaseConfig Describes the base config shared by all implementations.
+type BaseConfig struct {
+	Url       string
+	Auth      string
+	UserAgent string
 }
 
 // GitRepoFile Describes a single git file, independent of the git-platform
@@ -34,21 +40,25 @@ type GitRepoFile struct {
 	Content string
 }
 
+// GitRepoNode Describes a generic git-repo-file independent of the specific provider.
 type GitRepoNode struct {
 	Name string
 	Type string
 	Path string
 }
 
+// GitBranch Describes a singular branch from a remote repository.
 type GitBranch struct {
 	Name string `json:"name"`
 }
 
+// NewSharedConfig Creates a new instance of SharedConfig
 func NewSharedConfig() *SharedConfig {
 	return &SharedConfig{}
 }
 
-func ValidateBranch(api IGitApi, branch string) (bool, error) {
+// ValidateBranch retrieves the available branches from a remote repository and returns true if the given branch is available.
+func ValidateBranch(api GitApi, branch string) (bool, error) {
 	branches, err := api.GetAvailableBranches()
 	if err != nil {
 		return false, err
@@ -59,20 +69,16 @@ func ValidateBranch(api IGitApi, branch string) (bool, error) {
 
 // httpGetInternal sends GET-Request with given fullUrl, privateToken (for api) and userAgent. Returns the response body.
 func httpGetInternal(fullUrl string, header map[string]string) ([]byte, error) {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
 	req, err := http.NewRequest("GET", fullUrl, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	for key, val := range header {
-		req.Header.Add(key, val)
+		req.Header.Set(key, val)
 	}
 
-	client := &http.Client{Transport: tr}
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

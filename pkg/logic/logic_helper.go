@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 )
 
+// GetDirFromFilepath retrieves the directory from a full filepath. returns false if dir does not exist.
 func GetDirFromFilepath(file string) (bool, string) {
 	dir := filepath.Dir(file)
 	_, err := os.Stat(dir)
@@ -17,6 +18,7 @@ func GetDirFromFilepath(file string) (bool, string) {
 	return !os.IsNotExist(err), dir
 }
 
+// FileExists returns true if the file exists.
 func FileExists(file string) bool {
 	fileInfo, err := os.Stat(file)
 	if err != nil {
@@ -25,6 +27,7 @@ func FileExists(file string) bool {
 	return !fileInfo.IsDir()
 }
 
+// DirExists returns true if dir exists.
 func DirExists(dir string) bool {
 	fileInfo, err := os.Stat(dir)
 	if err != nil {
@@ -33,6 +36,7 @@ func DirExists(dir string) bool {
 	return fileInfo.IsDir()
 }
 
+// IsValidPath returns true if given path is valid.
 func IsValidPath(path string) bool {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -41,6 +45,7 @@ func IsValidPath(path string) bool {
 	return !os.IsNotExist(err)
 }
 
+// IsHashEqual calculates the hash from a file and compares it with a given hash. Returns true if hashes are equal.
 func IsHashEqual(file, compareHash string, hash hash.Hash) (bool, error) {
 	if _, err := os.Stat(file); err != nil {
 		return false, err

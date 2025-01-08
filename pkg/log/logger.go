@@ -2,11 +2,12 @@ package log
 
 import (
 	"fmt"
-	"github.com/haevg-rz/git-file-downloader/pkg/exit"
 	goLog "log"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/haevg-rz/git-file-downloader/pkg/exit"
 )
 
 const (
@@ -27,24 +28,28 @@ var (
 	Level = 0
 
 	// Shared logger instance used throughout the project. Acts dependent on the global log level.
-	logger = NewLogger()
+	logger = NewLoggerHandler()
 
-	GracefulShutdown sync.WaitGroup
+	FileLogWg sync.WaitGroup
 )
 
-type ILogger interface {
+// Logger describes the default logging behaviour
+type Logger interface {
 	Println(v ...interface{})
 	Printf(format string, v ...interface{})
 }
 
-type Logger struct {
+// LoggerHandler is a specific implementation of Logger. Defines a log-level which controls whether a log will be printed.
+type LoggerHandler struct {
 	level int
 }
 
-func NewLogger() *Logger {
-	return &Logger{level: 0}
+// NewLoggerHandler creates a new instance of LoggerHandler
+func NewLoggerHandler() *LoggerHandler {
+	return &LoggerHandler{}
 }
 
+// InitFileLog initiates logging to file. Spawns a goroutine which closes the fileHandle once no longer needed.
 func InitFileLog(outputPath string, logLevel int, doneCh chan bool) error {
 	var err error
 
@@ -65,14 +70,14 @@ func InitFileLog(outputPath string, logLevel int, doneCh chan bool) error {
 		}
 	}
 
-	logFile, err := os.OpenFile(fmt.Sprintf("%s/%s-log.txt", outputPath, time.Now().Format(FilenameFormat)), os.O_CREATE, 0644)
+	logFile, err := os.OpenFile(fmt.Sprintf("%s/%s-log.log", outputPath, time.Now().Format(FilenameFormat)), os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
 
 	goLog.SetOutput(logFile)
 
-	GracefulShutdown.Add(1)
+	FileLogWg.Add(1)
 	go func() {
 		V(3).Printf("logging to file %s with v=%d\n", logFile.Name(), logLevel)
 		<-doneCh
@@ -82,24 +87,27 @@ func InitFileLog(outputPath string, logLevel int, doneCh chan bool) error {
 		if err != nil {
 			exit.Code = exit.InternalError
 		}
-		GracefulShutdown.Done()
+		FileLogWg.Done()
 	}()
 
 	return nil
 }
 
-func V(level int) *Logger {
+// V returns a local shared logger-instance with given level.
+func V(level int) *LoggerHandler {
 	logger.level = level
 	return logger
 }
 
-func (l *Logger) Println(v ...interface{}) {
+// Println prints the given arguments.
+func (l *LoggerHandler) Println(v ...interface{}) {
 	if l.level <= Level {
 		goLog.Println(v...)
 	}
 }
 
-func (l *Logger) Printf(format string, v ...interface{}) {
+// Printf prints the format string with the given arguments.
+func (l *LoggerHandler) Printf(format string, v ...interface{}) {
 	if l.level <= Level {
 		goLog.Printf(format, v...)
 	}

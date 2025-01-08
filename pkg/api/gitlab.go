@@ -9,7 +9,19 @@ import (
 	"strconv"
 )
 
-var _ IGitApi = &GitLabApi{}
+var _ GitApi = &GitLabApi{}
+
+// GitLabApi is used for communication to the gitLabApi. Instance fields are used as base-configuration for every request.
+// Implements GitApi.
+type GitLabApi struct {
+	base          *SharedConfig
+	projectNumber int
+}
+
+// GitLabConfig defines all fields needed for the api.
+type GitLabConfig struct {
+	ProjectNumber int
+}
 
 // GitLabRepoFile describes a file returned from the gitLabApi
 type GitLabRepoFile struct {
@@ -26,13 +38,6 @@ type GitLabRepoNode struct {
 	Path string `json:"path"`
 }
 
-// GitLabApi is used for communication to the gitLabApi. Instance fields are used as base-configuration for every request.
-// Implements IGitApi.
-type GitLabApi struct {
-	base          *SharedConfig
-	projectNumber int
-}
-
 const (
 	gitlabNodeTemplate   = "%s/projects/%s/repository/tree/?ref=%s&path=%s"
 	gitlabFileTemplate   = "%s/projects/%s/repository/files/%s?ref=%s"
@@ -40,16 +45,16 @@ const (
 )
 
 // NewGitLabApi creates a new instance of the git lab api
-func NewGitLabApi(privateToken, userAgent, apiBaseUrl string, projectNumber int) *GitLabApi {
+func NewGitLabApi(baseConfig *BaseConfig, gitlabConfig *GitLabConfig) *GitLabApi {
 	return &GitLabApi{
 		base: &SharedConfig{
-			url: apiBaseUrl,
+			url: baseConfig.Url,
 			defaultHeader: map[string]string{
-				"Private-Token": privateToken,
-				"User-Agent":    userAgent,
+				"Private-Token": baseConfig.Auth,
+				"User-Agent":    baseConfig.UserAgent,
 			},
 		},
-		projectNumber: projectNumber,
+		projectNumber: gitlabConfig.ProjectNumber,
 	}
 }
 
@@ -83,6 +88,7 @@ func (g *GitLabApi) GetRemoteFile(path, branch string) (*GitRepoFile, error) {
 	}, nil
 }
 
+// GetHash returns the hash-method for the gitLabApi.
 func (g *GitLabApi) GetHash() hash.Hash {
 	return sha256.New()
 }
