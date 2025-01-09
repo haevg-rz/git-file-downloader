@@ -88,7 +88,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&options.Current.LogToFile, FlagLogToFile, options.Current.LogToFile, "Write to file instead of stdout")
 
 	// api flag def
-	rootCmd.PersistentFlags().StringVar(&options.Current.Api.Auth, FlagAuthToken, options.Current.Api.Auth, "Private-Token with access right for \"api\" and \"read_repository\", role must be minimum \"Reporter\"")
+	rootCmd.PersistentFlags().StringVar(&options.Current.Api.Auth, FlagAuthToken, options.Current.Api.Auth, "Private-Token with access rights for api")
 	rootCmd.PersistentFlags().StringVar(&options.Current.Api.UserAgent, FlagUserAgent, options.Current.Api.UserAgent, "User agent")
-	rootCmd.PersistentFlags().StringVar(&options.Current.Api.BaseUrl, FlagUrl, options.Current.Api.BaseUrl, "url to Api v4, like https://my-git-lab-server.local/api/v4/")
+	rootCmd.PersistentFlags().StringVar(&options.Current.Api.BaseUrl, FlagUrl, options.Current.Api.BaseUrl, "Url to api of git provider")
 }

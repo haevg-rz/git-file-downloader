@@ -35,8 +35,8 @@ Flags:
       --logfile              Write to file instead of stdout
       --out string           Path to write file to disk
       --remote-path string   Path to file/folder from remote source
-      --token string         Private-Token with access right for "api" and "read_repository", role must be minimum "Reporter"
-      --url string           url to Api v4, like https://my-git-lab-server.local/api/v4/
+      --token string         Private-Token with access rights for api
+      --url string           Url to api of git provider
       --user-agent string    User agent (default "Go-http-client/1.1")
   -v, --verbosity int        Set verbosity level (0-3) (default 3)
 
@@ -83,8 +83,8 @@ Global Flags:
 --logfile              Write to file instead of stdout
 --out string           Path to write file to disk
 --remote-path string   Path to file/folder from remote source
---token string         Private-Token with access right for "api" and "read_repository", role must be minimum "Reporter"
---url string           url to Api v4, like https://my-git-lab-server.local/api/v4/
+--token string         Private-Token with access rights for api
+--url string           Url to api of git provider
 --user-agent string    User agent (default "Go-http-client/1.1")
 -v, --verbosity int        Set verbosity level (0-3) (default 3)
 2024/11/20 16:36:24 exit code: 0
@@ -160,13 +160,3 @@ See https://gitlab.com/mdriessen/downloader-test for local testing.
 #### Azure
 
 - `Code`: minimum `Read`
-
-### TLS Security
-
-**Will be a config switch, soon.**
-
-```go
-tr := &http.Transport{
-      TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-}
-```
