@@ -48,7 +48,7 @@ Use "gdown [command] --help" for more information about a command.
 ### Download files from your gitlab repository
 
 You want to have the benefits from git to manage your config files, but don't want git installed on your system?
-With this (windows and linux) tool you can now download these config files from an on-promise instance of your choice (GitHub, AzureGit, GitLab) and save them to your disk.
+With this (windows and linux) tool you can now download these config files from a git provider of your choice (GitHub, AzureGit, GitLab) and save them to disk.
 
 You can download folders/files from different repositories and providers, and save them in the output path of your choice.
 
