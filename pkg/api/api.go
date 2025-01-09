@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"slices"
+	"time"
 )
 
 var (
@@ -78,7 +79,9 @@ func httpGetInternal(fullUrl string, header map[string]string) ([]byte, error) {
 		req.Header.Set(key, val)
 	}
 
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

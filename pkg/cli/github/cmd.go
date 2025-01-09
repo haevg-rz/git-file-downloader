@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	FlagOwner = "owner"
-	FlagRepo  = "repo"
+	FlagOwner      = "owner"
+	FlagRepo       = "repo"
+	FlagApiVersion = "api-version"
 
 	Endpoint = "https://api.github.com"
 )
@@ -40,8 +41,9 @@ var rootCmd *cobra.Command = &cobra.Command{
 				UserAgent: globalOptions.Current.Api.UserAgent,
 			},
 			&api.GitHubConfig{
-				Owner: options.Current.Owner,
-				Repo:  options.Current.Repo,
+				Owner:      options.Current.Owner,
+				Repo:       options.Current.Repo,
+				ApiVersion: options.Current.ApiVersion,
 			})
 
 		return logic.NewGitFileDownloader(gitApi).Handle(&logic.Context{
@@ -63,4 +65,5 @@ func Command() *cobra.Command {
 func init() {
 	rootCmd.Flags().StringVar(&options.Current.Owner, FlagOwner, options.Current.Owner, "repo owner")
 	rootCmd.Flags().StringVar(&options.Current.Repo, FlagRepo, options.Current.Repo, "repo name")
+	rootCmd.Flags().StringVar(&options.Current.ApiVersion, FlagApiVersion, options.Current.ApiVersion, "api version")
 }

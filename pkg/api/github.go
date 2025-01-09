@@ -19,8 +19,9 @@ type GitHubApi struct {
 
 // GitHubConfig defines all fields needed for the api.
 type GitHubConfig struct {
-	Owner string
-	Repo  string
+	Owner      string
+	Repo       string
+	ApiVersion string
 }
 
 // GitHubRepoNode defines a node returned from the githubApi.
@@ -57,7 +58,7 @@ func NewGitHubApi(baseConfig *BaseConfig, githubConfig *GitHubConfig) *GitHubApi
 			defaultHeader: map[string]string{
 				"Authorization":        fmt.Sprintf("Bearer %s", baseConfig.Auth),
 				"User-Agent":           baseConfig.UserAgent,
-				"X-GitHub-Api-Version": "2022-11-28",
+				"X-GitHub-Api-Version": githubConfig.ApiVersion,
 				"Accept":               "application/vnd.github+json",
 			},
 		},
