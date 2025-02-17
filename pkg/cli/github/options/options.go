@@ -1,8 +1,9 @@
 package options
 
 type Options struct {
-	OutFile      string
-	RepoFilePath string
+	Owner      string
+	Repo       string
+	ApiVersion string
 }
 
 func NewOptions() *Options {
@@ -10,6 +11,7 @@ func NewOptions() *Options {
 }
 
 var Current *Options = &Options{
-	OutFile:      "",
-	RepoFilePath: "",
+	Owner:      "",
+	Repo:       "",
+	ApiVersion: "2022-11-28",
 }

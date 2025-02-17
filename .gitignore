@@ -15,7 +15,11 @@
 debug
 publish
 out
+logs
 secrets
 *.key
 **/test_local_dir
 coverage.txt
+
+# local clone folders for testing
+clone-*

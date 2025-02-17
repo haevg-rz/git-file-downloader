@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// Flags takes a map describing specific cli-flags and returns an error if a flag is missing.
 func Flags(flagToValue map[string]interface{}) error {
 	missingFlags := make([]string, 0)
 

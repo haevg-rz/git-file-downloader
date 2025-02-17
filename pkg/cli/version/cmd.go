@@ -1,7 +1,7 @@
 package version
 
 import (
-	"github.com/haevg-rz/git-file-downloader/pkg/log"
+	"fmt"
 	"github.com/spf13/cobra"
 )
 
@@ -14,15 +14,11 @@ var rootCmd *cobra.Command = &cobra.Command{
 	Use:   "version",
 	Short: "version of git file downloader",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		log.V(1).Printf("%s %s\n", AppName, Version)
+		fmt.Printf("%s %s\n", AppName, Version)
 		return nil
 	},
 }
 
 func Command() *cobra.Command {
 	return rootCmd
-}
-
-func init() {
-	// flag definitions
 }

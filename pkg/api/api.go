@@ -1,135 +1,87 @@
 package api
 
 import (
-	"crypto/tls"
-	"encoding/json"
 	"fmt"
+	"hash"
 	"io"
 	"net/http"
-	"net/url"
+	"slices"
+	"time"
 )
 
 var (
 	HttpGetFunc = httpGetInternal
 )
 
-type IGitLabApi interface {
-	GetAvailableBranches() ([]GitLabBranch, error)
-	BranchExists(string) (bool, error)
-	GetFile(string, string) (*GitLabFile, error)
-	GetFilesFromFolder(string, string) ([]GitLabRepoFile, error)
+// GitApi Describes the expected behaviour of a gitApiHandler.
+type GitApi interface {
+	GetAvailableBranches() ([]string, error)
+	GetRemoteFile(filePath, branch string) (*GitRepoFile, error)
+	GetFilesFromFolder(folderPath, branch string) ([]GitRepoNode, error)
+	GetHash() hash.Hash
 }
 
-type GitLabFile struct {
-	FileName      string `json:"file_name"`
-	ContentSha256 string `json:"content_sha256"`
-	Content       string
+// SharedConfig Defines shared fields for all implementations of GitApi.
+type SharedConfig struct {
+	url           string
+	defaultHeader map[string]string
 }
 
-type GitLabRepoFile struct {
-	ID   string `json:"id"`
+// BaseConfig Describes the base config shared by all implementations.
+type BaseConfig struct {
+	Url       string
+	Auth      string
+	UserAgent string
+}
+
+// GitRepoFile Describes a single git file, independent of the git-platform
+type GitRepoFile struct {
+	Name    string
+	Sha     string
+	Content string
+}
+
+// GitRepoNode Describes a generic git-repo-file independent of the specific provider.
+type GitRepoNode struct {
+	Name string
+	Type string
+	Path string
+}
+
+// GitBranch Describes a singular branch from a remote repository.
+type GitBranch struct {
 	Name string `json:"name"`
-	Type string `json:"type"`
-	Path string `json:"path"`
-	Mode string `json:"mode"`
 }
 
-type GitLabBranch struct {
-	Name string `json:"name"`
+// NewSharedConfig Creates a new instance of SharedConfig
+func NewSharedConfig() *SharedConfig {
+	return &SharedConfig{}
 }
 
-type GitLabApi struct {
-	UserAgent     string
-	ApiBaseUrl    string
-	PrivateToken  string
-	ProjectNumber int
-}
-
-func NewGitLabApi(userAgent, apiBaseUrl, privateToken string, projectNumber int) *GitLabApi {
-	return &GitLabApi{
-		UserAgent:     userAgent,
-		ApiBaseUrl:    apiBaseUrl,
-		PrivateToken:  privateToken,
-		ProjectNumber: projectNumber,
-	}
-}
-
-func (g *GitLabApi) GetFile(repoFilePath, branchName string) (*GitLabFile, error) {
-	var gitFile *GitLabFile
-
-	path := url.QueryEscape(repoFilePath)
-	branch := url.QueryEscape(branchName)
-
-	fullUrl := fmt.Sprintf("%vprojects/%v/repository/files/%v?ref=%v", g.ApiBaseUrl, g.ProjectNumber, path, branch)
-
-	body, err := HttpGetFunc(fullUrl, g.PrivateToken, g.UserAgent)
-	if err != nil {
-		return &GitLabFile{}, err
-	}
-
-	err = json.Unmarshal(body, &gitFile)
-	if err != nil {
-		return &GitLabFile{}, err
-	}
-
-	return gitFile, nil
-}
-
-func (g *GitLabApi) GetFilesFromFolder(repoFolderPath, branch string) ([]GitLabRepoFile, error) {
-	path := url.QueryEscape(repoFolderPath)
-	branchEsc := url.QueryEscape(branch)
-	fullUrl := fmt.Sprintf("%vprojects/%v/repository/tree/?ref=%v&path=%v", g.ApiBaseUrl, g.ProjectNumber, branchEsc, path)
-
-	body, err := HttpGetFunc(fullUrl, g.PrivateToken, g.UserAgent)
-	if err != nil {
-		return nil, err
-	}
-
-	var result []GitLabRepoFile
-	err = json.Unmarshal(body, &result)
-
-	return result, err
-}
-
-func (g *GitLabApi) GetAvailableBranches() ([]GitLabBranch, error) {
-	body, err := HttpGetFunc(fmt.Sprintf("%vprojects/%v/repository/branches", g.ApiBaseUrl, g.ProjectNumber), g.PrivateToken, g.UserAgent)
-	if err != nil {
-		return nil, err
-	}
-
-	var availableBranches []GitLabBranch
-	err = json.Unmarshal(body, &availableBranches)
-
-	return availableBranches, err
-}
-
-func (g *GitLabApi) BranchExists(branch string) (bool, error) {
-	branches, err := g.GetAvailableBranches()
+// ValidateBranch retrieves the available branches from a remote repository and returns true if the given branch is available.
+func ValidateBranch(api GitApi, branch string) (bool, error) {
+	branches, err := api.GetAvailableBranches()
 	if err != nil {
 		return false, err
 	}
 
-	for _, val := range branches {
-		if val.Name == branch {
-			return true, nil
-		}
-	}
-	return false, nil
+	return (branches != nil) && slices.Contains(branches, branch), nil
 }
 
-func httpGetInternal(fullUrl, privateToken, userAgent string) ([]byte, error) {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
+// httpGetInternal sends GET-Request with given fullUrl, privateToken (for api) and userAgent. Returns the response body.
+func httpGetInternal(fullUrl string, header map[string]string) ([]byte, error) {
 	req, err := http.NewRequest("GET", fullUrl, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("Private-Token", privateToken)
-	req.Header.Add("User-Agent", userAgent)
 
-	client := &http.Client{Transport: tr}
+	for key, val := range header {
+		req.Header.Set(key, val)
+	}
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -144,7 +96,7 @@ func httpGetInternal(fullUrl, privateToken, userAgent string) ([]byte, error) {
 		return nil, err
 	}
 
-	if err := resp.Body.Close(); err != nil {
+	if err = resp.Body.Close(); err != nil {
 		return nil, err
 	}
 
